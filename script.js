@@ -52,7 +52,7 @@ async function createGraph() {
         data: mmrData,
         borderColor: 'rgb(75, 192, 192)',
         fill: false,
-        pointRadius: 0,
+        pointRadius: numberOfMatch < 101 ? 5 : 0,
       }]
     },
     options: {
