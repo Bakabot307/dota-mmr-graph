@@ -80,7 +80,7 @@ async function createGraph() {
     data: {
       labels: Array.from({length: numberOfMatch}, (_, i) => i + 1),
       datasets: [{
-        label: 'MMR: ',
+        label: 'MMR',
         data: mmrData,
         borderColor: 'rgb(75, 192, 192)',
         fill: false,
@@ -88,11 +88,11 @@ async function createGraph() {
         datalabels: {
           align: function (context) {
             if (context.dataIndex === lowestMMRIndex) {
-              return 'bottom'; // Position label below the point
+              return 'bottom';
             } else if (context.dataIndex === highestMMRIndex) {
-              return 'top'; // Position label above the point
+              return 'top';
             } else {
-              return null; // Don't display label
+              return null;
             }
           },
           display: function (context) {
@@ -114,8 +114,8 @@ async function createGraph() {
       scales: {
         x: {
           title: {
-            display: false,
-            title: 'Number of game'
+            display: true,
+            text: `MMR PROGRESSION OVER ${numberOfMatch} MATCHES`
           },
           ticks: {
             maxTicksLimit: 12
@@ -158,9 +158,9 @@ async function takeScreenshot() {
     const blob = await fetch(dataUrl).then(res => res.blob());
     const item = new ClipboardItem({'image/png': blob});
     await navigator.clipboard.write([item]);
-    document.getElementById('messages').style.display = 'block'; // Display the message
+    document.getElementById('messages').style.display = 'block';
     setTimeout(() => {
-      document.getElementById('messages').style.display = 'none'; // Hide the message after a delay
+      document.getElementById('messages').style.display = 'none';
     }, 3000); // Hide after 3 seconds
   } catch (error) {
     console.error('Failed to save screenshot to clipboard:', error);
