@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+  <title>Dota 2 Match History Graph</title>
+  <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+<body>
+<div style="text-align: center;">
+  <label for="playerId">Player ID:</label>
+  <input id="playerId" class="inputField" placeholder="Enter Player ID" type="text" value="431913975">
+  <label for="currentMmr">Initial MMR:</label>
+  <input id="currentMmr" class="inputField" placeholder="Enter current MMR" type="number">
+  <label for="numberOfMatch">Matches:</label>
+  <input id="numberOfMatch" class="inputField" placeholder="Enter number of match" type="number" value="100">
+  <button id="createGraphBtn" onclick="createGraph()">Create Graph</button>
+  <a href="https://github.com/Bakabot307/dota-mmr-graph" target="_blank">Suggestion?</a>
+</div>
+<canvas height="600" id="dotaGraph" width="1200" style="margin: 0 auto;"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
