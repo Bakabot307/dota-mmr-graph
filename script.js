@@ -1,12 +1,26 @@
 async function fetchData(playerId, numberOfMatch) {
-  const response = await fetch(`https://api.opendota.com/api/players/${playerId}/matches?limit=${numberOfMatch}&lobby_type=7`);
+  const response = await fetch(
+      `https://api.opendota.com/api/players/${playerId}/matches?limit=${numberOfMatch}&lobby_type=7`);
   return await response.json();
 }
 
+let myChart;
+
 async function createGraph() {
+  const canvas = document.getElementById('dotaGraph');
+  const ctx = canvas.getContext('2d');
+
+  // Clear the canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (myChart) {
+    myChart.destroy(); // Destroy the previous chart if it exists
+  }
+
   const playerId = document.getElementById('playerId').value;
   const initialMmr = parseInt(document.getElementById('currentMmr').value);
-  const numberOfMatch = parseInt(document.getElementById('numberOfMatch').value);
+  const numberOfMatch = parseInt(
+      document.getElementById('numberOfMatch').value);
   const data = await fetchData(playerId, numberOfMatch);
   let mmr = initialMmr;
   const mmrData = [];
@@ -18,7 +32,8 @@ async function createGraph() {
     } else {
       const playerSlot = data[i - 1].player_slot;
       const isRadiant = playerSlot < 128;
-      const wonMatch = (isRadiant && data[i - 1].radiant_win) || (!isRadiant && !data[i - 1].radiant_win);
+      const wonMatch = (isRadiant && data[i - 1].radiant_win) || (!isRadiant
+          && !data[i - 1].radiant_win);
       if (wonMatch) {
         mmr -= 25;
       } else {
@@ -28,8 +43,7 @@ async function createGraph() {
     }
   }
 
-  const ctx = document.getElementById('dotaGraph').getContext('2d');
-  const chart = new Chart(ctx, {
+  myChart = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels,
@@ -59,3 +73,5 @@ async function createGraph() {
     }
   });
 }
+
+
