@@ -60,7 +60,11 @@ async function createGraph() {
       scales: {
         x: {
           title: {
-            display: false
+            display: false,
+            title:'Number of game'
+          },
+          ticks: {
+            maxTicksLimit: 12
           }
         },
         y: {
