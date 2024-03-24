@@ -9,16 +9,23 @@
 <body>
 <div style="text-align: center;">
   <label for="playerId">Player ID:</label>
-  <input id="playerId" class="inputField" placeholder="Enter Player ID" type="text">
+  <input id="playerId" class="inputField" placeholder="Enter Player ID" type="number" >
   <label for="currentMmr">Current MMR:</label>
-  <input id="currentMmr" class="inputField" placeholder="Enter current MMR" type="number">
+  <input id="currentMmr" class="inputField" placeholder="Enter current MMR" type="number" >
   <label for="numberOfMatch">Matches:</label>
   <input id="numberOfMatch" class="inputField" placeholder="Enter number of match" type="number" value="100">
   <button id="createGraphBtn" onclick="createGraph()">Create Graph</button>
   <a href="https://github.com/Bakabot307/dota-mmr-graph" target="_blank">Suggestion?</a>
 </div>
-<canvas height="600" id="dotaGraph" width="1200" style="margin: 0 auto;"></canvas>
+
+<div class="canvas-container">
+    <label id="errors" style="color: red"></label>
+  <canvas width="1200px" height="600px" id="dotaGraph"></canvas>
+  <button id="screenshotBtn" >Take Screenshot</button>
+  <label id="messages">Screenshot saved to clipboard!</label>
+</div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script src="script.js"></script>
 </body>
 </html>
