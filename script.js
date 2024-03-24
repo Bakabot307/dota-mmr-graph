@@ -7,7 +7,7 @@ async function fetchData(playerId, numberOfMatch) {
     }
     const data = await response.json();
     if (data.length === 0) {
-      throw new Error('Player ID does not exist');
+      throw new Error('Player ID does not exist or private');
     }
     document.getElementById('errors').textContent = "";
     return data;
@@ -24,7 +24,6 @@ async function createGraph() {
   const currentMmr = parseInt(document.getElementById('currentMmr').value);
   const numberOfMatch = parseInt(document.getElementById('numberOfMatch').value);
 
-  console.log(playerId,currentMmr,numberOfMatch)
   if (isNaN(playerId) || playerId <= 0) {
     document.getElementById('errors').textContent = 'Id > 0';
     return;
@@ -52,10 +51,12 @@ async function createGraph() {
   const data = await fetchData(playerId, numberOfMatch, currentMmr);
   let mmr = currentMmr;
   const mmrData = [];
+  const matchIdData = [];
 
   for (let i = 0; i < data.length; i++) {
     if (i === 0) {
       mmrData.push(mmr);
+      matchIdData.push(data[0].match_id)
     } else {
       const playerSlot = data[i - 1].player_slot;
       const isRadiant = playerSlot < 128;
@@ -66,6 +67,7 @@ async function createGraph() {
       } else {
         mmr += 25;
       }
+      matchIdData.unshift(data[i].match_id)
       mmrData.unshift(mmr);
     }
   }
@@ -78,7 +80,7 @@ async function createGraph() {
   myChart = new Chart(ctx, {
     type: 'line',
     data: {
-      labels: Array.from({length: numberOfMatch}, (_, i) => i + 1),
+      labels: matchIdData,
       datasets: [{
         label: 'MMR',
         data: mmrData,
@@ -91,13 +93,15 @@ async function createGraph() {
               return 'bottom';
             } else if (context.dataIndex === highestMMRIndex) {
               return 'top';
+            } else if (context.dataIndex === 0) {
+              return 'left';
             } else {
               return null;
             }
           },
           display: function (context) {
-            return context.dataIndex === lowestMMRIndex || context.dataIndex
-            === highestMMRIndex ? context.dataIndex : '';
+            return context.dataIndex === lowestMMRIndex || context.dataIndex === highestMMRIndex|| context.dataIndex === numberOfMatch - 1 ?
+                context.dataIndex : '';
           }
         }
       }]
@@ -106,7 +110,7 @@ async function createGraph() {
     options: {
       layout: {
         padding: {
-          right: 25,
+          right: 50,
 
         }
       },
@@ -118,7 +122,11 @@ async function createGraph() {
             text: `MMR PROGRESSION OVER ${numberOfMatch} MATCHES`
           },
           ticks: {
-            maxTicksLimit: 12
+            maxTicksLimit: 12,
+            callback: function(value, index, values) {
+              // Display index + 1 as the label
+              return index + 1;
+            }
           }
         },
         y: {
@@ -133,6 +141,7 @@ async function createGraph() {
     }
   });
   document.getElementById('screenshotBtn').style.display = 'block';
+  document.getElementById('instructions').style.display = 'block';
 }
 
 async function takeScreenshot() {
@@ -177,9 +186,21 @@ async function saveGraphAsImage() {
     graphImage.onerror = (error) => reject(error);
   });
 }
-
 document.getElementById('screenshotBtn').addEventListener('click',
     takeScreenshot);
+
+document.getElementById('dotaGraph').addEventListener('click', clickHandler);
+function clickHandler(evt) {
+  const points = myChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
+  if (points.length) {
+    const firstPoint = points[0];
+    const label = myChart.data.labels[firstPoint.index];
+    const dotabuffUrl = `https://www.dotabuff.com/matches/${label}`;
+    window.open(dotabuffUrl, '_blank')
+  }
+}
+
+
 
 
 
