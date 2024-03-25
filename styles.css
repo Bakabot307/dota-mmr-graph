@@ -16,8 +16,6 @@
   cursor: pointer;
   font-size: 16px;
   align-self: center;
-  display: none;
-  margin-top: 25px;
 }
 #createGraphBtn:hover,#screenshotBtn:hover {
   background-color: #45a049;
@@ -45,6 +43,17 @@
 #messages{
   display: none;
   color: red;
-  margin-top: 25px;
+}
+
+#showAfterCreated{
+  display: none;
+  margin-top: 15px;
+}
+.dotabuff-icon {
+  height: 40px;
+  width: 40px;
+  cursor: pointer;
+  font-size: 16px;
+  vertical-align: middle;
 }
 

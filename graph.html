@@ -21,9 +21,15 @@
 <div class="canvas-container">
     <label id="errors" style="color: red"></label>
   <canvas width="1200px" height="600px" id="dotaGraph"></canvas>
-  <button id="screenshotBtn" >Take Screenshot</button>
+  <div id="showAfterCreated">
+    <button id="screenshotBtn" >Take Screenshot</button>
+    <a id="profileBtn" href="https://dotabuff.com/" target="_blank">
+      <img src="https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg" alt="Dotabuff Icon" class="dotabuff-icon">
+    </a>
+    <p id="instructions" style="font-size: 14px; color: #666;">* Click on the tick labels to view matches on Dotabuff</p>
+  </div>
+
   <label id="messages">Screenshot saved to clipboard!</label>
-  <p id="instructions" style="font-size: 14px; color: #666; margin-top: 10px; display: none">* Click on the tick labels to view matches on Dotabuff</p>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>

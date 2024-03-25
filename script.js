@@ -10,6 +10,7 @@ async function fetchData(playerId, numberOfMatch) {
       throw new Error('Player ID does not exist or private');
     }
     document.getElementById('errors').textContent = "";
+    localStorage.setItem("playerId",playerId)
     return data;
   } catch (error) {
     console.error('Error fetching data:', error.message);
@@ -137,11 +138,18 @@ async function createGraph() {
           min: Math.min(...mmrData) - 25,
           max: Math.max(...mmrData) + 25,
         }
-      }
+      },
+      animation: {
+        onComplete: function () {
+          const dotabuffLink = `https://www.dotabuff.com/players/${playerId}`;
+          const dotabuffIcon = document.getElementById('profileBtn');
+          dotabuffIcon.href = dotabuffLink;
+          document.getElementById('showAfterCreated').style.display = 'block';
+        }
+        }
     }
   });
-  document.getElementById('screenshotBtn').style.display = 'block';
-  document.getElementById('instructions').style.display = 'block';
+
 }
 
 async function takeScreenshot() {
@@ -186,10 +194,7 @@ async function saveGraphAsImage() {
     graphImage.onerror = (error) => reject(error);
   });
 }
-document.getElementById('screenshotBtn').addEventListener('click',
-    takeScreenshot);
 
-document.getElementById('dotaGraph').addEventListener('click', clickHandler);
 function clickHandler(evt) {
   const points = myChart.getElementsAtEventForMode(evt, 'nearest', { intersect: true }, true);
   if (points.length) {
@@ -199,7 +204,17 @@ function clickHandler(evt) {
     window.open(dotabuffUrl, '_blank')
   }
 }
+function setLatestPlayerId() {
+  const playerId = localStorage.getItem('playerId');
+  if (playerId) {
+    document.getElementById('playerId').value = playerId;
+  }
+}
 
+document.getElementById('screenshotBtn').addEventListener('click',
+    takeScreenshot);
+document.getElementById('dotaGraph').addEventListener('click', clickHandler);
+window.addEventListener('load', setLatestPlayerId);
 
 
 
