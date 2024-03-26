@@ -1,21 +1,31 @@
 let numberOfId = 1;
+let selfCompare = false;
 
 async function fetchData(playerIds, numberOfMatch) {
-  let gameType='&lobby_type=7';
-  if(numberOfId>1){
+  let userNumberOfMatch = 0;
+
+  if (selfCompare) {
+    userNumberOfMatch = numberOfMatch * 2;
+    playerIds.pop();
+  } else {
+    userNumberOfMatch = numberOfMatch;
+  }
+  console.log(selfCompare)
+  let gameType = '&lobby_type=7';
+  if (numberOfId > 1) {
     const selected = document.getElementById("gameType");
-    if(selected.value==="7"){
-      gameType= 'lobby_type=7';
+    if (selected.value === "7") {
+      gameType = 'lobby_type=7';
     }
-    if(selected.value==="1"){
-      gameType=''
+    if (selected.value === "1") {
+      gameType = ''
     }
   }
   try {
     const allData = [];
     for (const playerId of playerIds) {
       const response = await fetch(
-          `https://api.opendota.com/api/players/${playerId}/matches?limit=${numberOfMatch}&${gameType}`);
+          `https://api.opendota.com/api/players/${playerId}/matches?limit=${userNumberOfMatch}&${gameType}`);
       if (!response.ok) {
         throw new Error(
             `Failed to fetch data for player ${playerId}! Try again later`);
@@ -24,7 +34,17 @@ async function fetchData(playerIds, numberOfMatch) {
       if (data.length === 0) {
         throw new Error(`ID ${playerId} does not exist or is private`);
       }
-      allData.push({playerId, data});
+      if (selfCompare) {
+        console.log(data)
+        const firstHalf = data.slice(0, userNumberOfMatch / 2)
+        const secondHalf = data.slice(userNumberOfMatch / 2)
+        const string1 = `1-${userNumberOfMatch / 2}`
+        const string2 = `${userNumberOfMatch / 2}-${userNumberOfMatch}`
+        allData.push({playerId: string1, data: firstHalf})
+        allData.push({playerId: string2, data: secondHalf})
+      } else {
+        allData.push({playerId, data});
+      }
     }
     document.getElementById('errors').textContent = "";
     localStorage.setItem("playerIds", JSON.stringify(playerIds));
@@ -45,7 +65,7 @@ async function createGraph() {
 
   const numberOfMatch = parseInt(
       document.getElementById('numberOfMatch').value);
-  for (let i = 1; i <= numberOfId; i++) { // Assuming there are four player inputs
+  for (let i = 1; i <= numberOfId; i++) {
     const playerId = parseInt(document.getElementById(`playerId${i}`).value);
     if (!isNaN(playerId) && playerId > 0) {
       playerIds.push(playerId);
@@ -54,6 +74,11 @@ async function createGraph() {
       return;
     }
   }
+  if (numberOfId === 2
+      && playerIds[0] === playerIds[1]) {
+    selfCompare = true;
+  }
+  console.log(playerIds)
   if (isNaN(currentMmr) && numberOfId === 1 || currentMmr <= 0 && numberOfId
       === 1) {
     document.getElementById('errors').textContent = 'Mmr > 0';
@@ -65,11 +90,13 @@ async function createGraph() {
     return;
   }
 
+
   const canvas = document.getElementById('dotaGraph');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const datas = await fetchData(playerIds, numberOfMatch, currentMmr);
+  console.log(playerIds)
   if (myChart) {
     myChart.destroy(); // Destroy the previous chart if it exists
   }
@@ -78,7 +105,6 @@ async function createGraph() {
     let mmr = currentMmr;
     const mmrData = [];
     const matchIdData = [];
-
     for (let i = 0; i < data.length; i++) {
       if (i === 0) {
         mmrData.push(mmr);
@@ -127,7 +153,6 @@ async function createGraph() {
               }
             },
             display: function (context) {
-
               return context.dataIndex === lowestMMRIndex || context.dataIndex
               === highestMMRIndex || context.dataIndex === numberOfMatch - 1 ?
                   context.dataIndex : '';
@@ -250,7 +275,7 @@ async function createGraph() {
             mode: 'index',
             intersect: false,
             callbacks: {
-              title : function () {
+              title: function () {
                 return 'Score'
               }
             }
@@ -266,7 +291,8 @@ async function createGraph() {
           x: {
             title: {
               display: true,
-              text: `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${numberOfMatch} MATCHES`
+              text: selfCompare? `SELF COMPARING SCORE FROM 1-${numberOfMatch} TO ${numberOfMatch}-${numberOfMatch*2}`
+                  :`COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${numberOfMatch} MATCHES`
             },
             ticks: {
               maxTicksLimit: 12,
@@ -295,6 +321,7 @@ async function createGraph() {
 }
 
 function onCompleteShowDotaBuff(playerIds) {
+  selfCompare=false;
   const container = document.getElementById('profileBtnContainer');
   container.innerHTML = '';
   for (let i = 0; i < playerIds.length; i++) {
@@ -407,13 +434,14 @@ function togglePlayerInputs() {
   if (numberOfId === 1) {
     currentMmr.style.display = 'block';
     currentMmrText.style.display = 'block';
-    gameType.style.display='none'
+    gameType.style.display = 'none'
   } else {
     currentMmr.style.display = 'none';
     currentMmrText.style.display = 'none';
-    gameType.style.display='block'
+    gameType.style.display = 'block'
   }
 }
+
 document.getElementById('screenshotBtn').addEventListener('click',
     takeScreenshot);
 document.getElementById('dotaGraph').addEventListener('click', clickHandler);
