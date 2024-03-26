@@ -2,15 +2,12 @@ let numberOfId = 1;
 let selfCompare = false;
 
 async function fetchData(playerIds, numberOfMatch) {
-  let userNumberOfMatch = 0;
+  let userNumberOfMatch = numberOfMatch;
 
   if (selfCompare) {
-    userNumberOfMatch = numberOfMatch * 2;
-    playerIds.pop();
-  } else {
-    userNumberOfMatch = numberOfMatch;
+    userNumberOfMatch = numberOfMatch * numberOfId;
   }
-  console.log(selfCompare)
+
   let gameType = '&lobby_type=7';
   if (numberOfId > 1) {
     const selected = document.getElementById("gameType");
@@ -35,13 +32,14 @@ async function fetchData(playerIds, numberOfMatch) {
         throw new Error(`ID ${playerId} does not exist or is private`);
       }
       if (selfCompare) {
-        console.log(data)
-        const firstHalf = data.slice(0, userNumberOfMatch / 2)
-        const secondHalf = data.slice(userNumberOfMatch / 2)
-        const string1 = `1-${userNumberOfMatch / 2}`
-        const string2 = `${userNumberOfMatch / 2}-${userNumberOfMatch}`
-        allData.push({playerId: string1, data: firstHalf})
-        allData.push({playerId: string2, data: secondHalf})
+        const chunkSize = numberOfMatch;
+        for (let i = 0; i < numberOfId; i++) {
+          const startIndex = i * chunkSize;
+          const endIndex = Math.min(startIndex + chunkSize, data.length);
+          const chunkData = data.slice(startIndex, endIndex);
+          const stringId = `${startIndex + 1}-${endIndex}`; // Assuming playerIds start from 1
+          allData.push({playerId: stringId, data: chunkData});
+        }
       } else {
         allData.push({playerId, data});
       }
@@ -62,10 +60,9 @@ async function createGraph() {
   const playerIds = [];
 
   const currentMmr = parseInt(document.getElementById('currentMmr').value);
-
   const numberOfMatch = parseInt(
       document.getElementById('numberOfMatch').value);
-  for (let i = 1; i <= numberOfId; i++) {
+  for (let i = 1; i <= (selfCompare ? 1 : numberOfId); i++) {
     const playerId = parseInt(document.getElementById(`playerId${i}`).value);
     if (!isNaN(playerId) && playerId > 0) {
       playerIds.push(playerId);
@@ -74,13 +71,8 @@ async function createGraph() {
       return;
     }
   }
-  if (numberOfId === 2
-      && playerIds[0] === playerIds[1]) {
-    selfCompare = true;
-  }
-  console.log(playerIds)
-  if (isNaN(currentMmr) && numberOfId === 1 || currentMmr <= 0 && numberOfId
-      === 1) {
+  if (isNaN(currentMmr) && numberOfId === 1 && !selfCompare
+      || currentMmr <= 0 && numberOfId === 1 && !selfCompare) {
     document.getElementById('errors').textContent = 'Mmr > 0';
     return;
   }
@@ -90,17 +82,15 @@ async function createGraph() {
     return;
   }
 
-
   const canvas = document.getElementById('dotaGraph');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   const datas = await fetchData(playerIds, numberOfMatch, currentMmr);
-  console.log(playerIds)
   if (myChart) {
     myChart.destroy(); // Destroy the previous chart if it exists
   }
-  if (numberOfId <= 1) {
+  if (numberOfId <= 1 && !selfCompare) {
     const data = datas[0].data;
     let mmr = currentMmr;
     const mmrData = [];
@@ -291,8 +281,10 @@ async function createGraph() {
           x: {
             title: {
               display: true,
-              text: selfCompare? `SELF COMPARING SCORE FROM 1-${numberOfMatch} TO ${numberOfMatch}-${numberOfMatch*2}`
-                  :`COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${numberOfMatch} MATCHES`
+              text: selfCompare
+                  ? `SELF COMPARING SCORE FROM 1-${numberOfMatch} TO ${numberOfMatch}-${numberOfMatch
+                  * 2}`
+                  : `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${numberOfMatch} MATCHES`
             },
             ticks: {
               maxTicksLimit: 12,
@@ -321,7 +313,6 @@ async function createGraph() {
 }
 
 function onCompleteShowDotaBuff(playerIds) {
-  selfCompare=false;
   const container = document.getElementById('profileBtnContainer');
   container.innerHTML = '';
   for (let i = 0; i < playerIds.length; i++) {
@@ -337,7 +328,11 @@ function onCompleteShowDotaBuff(playerIds) {
     dotabuffIcon.appendChild(img);
     container.appendChild(dotabuffIcon);
   }
-
+  if (!selfCompare && numberOfId === 1) {
+    document.getElementById('instructions').style.display = 'block';
+  } else {
+    document.getElementById('instructions').style.display = 'none';
+  }
   document.getElementById('showAfterCreated').style.display = 'block';
 }
 
@@ -406,11 +401,14 @@ function setLatestPlayerId() {
 
 function togglePlayerInputs() {
   numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
+  if (numberOfId < 2 && selfCompare || isNaN(numberOfId) & selfCompare) {
+    document.getElementById("numberOfPlayer").value = 2
+    numberOfId = 2
+  }
   if (numberOfId < 1 || isNaN(numberOfId)) {
     document.getElementById("numberOfPlayer").value = 1
     numberOfId = 1
   }
-
   if (numberOfId > 5 || isNaN(numberOfId)) {
     document.getElementById("numberOfPlayer").value = 5
     numberOfId = 5
@@ -420,27 +418,56 @@ function togglePlayerInputs() {
   const currentMmrText = document.getElementById('currentMmrText')
   const playerIdContainer = document.getElementById('inputs');
   const gameType = document.getElementById('gameType');
-  playerIdContainer.innerHTML = '';
-  for (let i = 1; i <= numberOfId; i++) {
-    const playerInput = document.createElement('input');
-    playerInput.type = 'number';
-    playerInput.id = 'playerId' + i;
-    playerInput.placeholder = 'Enter Player ' + i + ' ID';
-    playerInput.min = '1';
-    playerInput.className = "inputField"
-    playerIdContainer.appendChild(playerInput);
-  }
-  setLatestPlayerId();
-  if (numberOfId === 1) {
-    currentMmr.style.display = 'block';
-    currentMmrText.style.display = 'block';
-    gameType.style.display = 'none'
+  if (selfCompare === false) {
+    playerIdContainer.innerHTML = '';
+    for (let i = 1; i <= numberOfId; i++) {
+      const playerInput = document.createElement('input');
+      playerInput.type = 'number';
+      playerInput.id = 'playerId' + i;
+      playerInput.placeholder = 'Enter Player ' + i + ' ID';
+      playerInput.min = '1';
+      playerInput.className = "inputField"
+      playerIdContainer.appendChild(playerInput);
+    }
+
+    if (numberOfId === 1) {
+      currentMmr.style.display = 'block';
+      currentMmrText.style.display = 'block';
+      gameType.style.display = 'none'
+    } else {
+      currentMmr.style.display = 'none';
+      currentMmrText.style.display = 'none';
+      gameType.style.display = 'block'
+    }
   } else {
     currentMmr.style.display = 'none';
     currentMmrText.style.display = 'none';
-    gameType.style.display = 'block'
   }
+  setLatestPlayerId();
 }
+
+document.getElementById('checkbox').addEventListener('change',
+    function (event) {
+      // Check if the checkbox is checked
+      const currentMmr = document.getElementById('currentMmr')
+      const currentMmrText = document.getElementById('currentMmrText')
+      const numberOfPlayerText = document.getElementById('numberOfPlayerText')
+      const numberOfPlayer = document.getElementById('numberOfPlayer')
+      if (this.checked) {
+        selfCompare = true;
+        currentMmr.style.display = 'none';
+        currentMmrText.style.display = 'none';
+        numberOfPlayerText.textContent = "Number of Graph:"
+        numberOfPlayer.value = 2;
+      } else {
+        selfCompare = false;
+        currentMmr.style.display = 'block';
+        currentMmrText.style.display = 'block';
+        numberOfPlayerText.textContent = "Number of Player:"
+        numberOfPlayer.value = 1;
+        numberOfId = 1;
+      }
+    });
 
 document.getElementById('screenshotBtn').addEventListener('click',
     takeScreenshot);

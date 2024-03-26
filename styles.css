@@ -17,6 +17,7 @@
   cursor: pointer;
   font-size: 16px;
   align-self: center;
+  display:inline-block
 }
 
 #createGraphBtn:hover, #screenshotBtn:hover {
@@ -72,7 +73,11 @@
 }
 
 #profileBtnContainer {
-  float: right;
+  display:inline-block
+}
+#instructions{
+  clear: both;
+  margin-top: 10px;
 }
 
 

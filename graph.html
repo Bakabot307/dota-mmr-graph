@@ -8,7 +8,9 @@
 </head>
 <body>
 <div class="input-container" style="text-align: center;">
-  <label for="numberOfPlayer">Number of Players:</label>
+  <label for="checkbox">Self-Comparing? </label>
+  <input type="checkbox" id="checkbox">
+  <label for="numberOfPlayer" id="numberOfPlayerText">Number of Players:</label>
   <input class="inputField" id="numberOfPlayer" max="5" min="1" oninput="togglePlayerInputs()" type="number" value="1">
   <label for="playerId1">Player ID:</label>
   <div id="inputs">
@@ -33,11 +35,9 @@
     <button id="screenshotBtn">Take Screenshot</button>
     <div id="profileBtnContainer">
     </div>
-    <p id="instructions" style="font-size: 14px; color: #666;">* Click on the tick labels to view matches on Dotabuff<br>
-    * For self-comparing chose Number of Players: 2 and Player ID: put the same ID for 2 input.
+    <p id="instructions" style="font-size: 14px; color: #666; display: none">* Click on the tick labels to view matches on Dotabuff<br>
     </p>
   </div>
-
   <label id="messages">Screenshot saved to clipboard!</label>
 </div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
