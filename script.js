@@ -1,11 +1,21 @@
 let numberOfId = 1;
 
 async function fetchData(playerIds, numberOfMatch) {
+  let gameType='&lobby_type=7';
+  if(numberOfId>1){
+    const selected = document.getElementById("gameType");
+    if(selected.value==="7"){
+      gameType= 'lobby_type=7';
+    }
+    if(selected.value==="1"){
+      gameType=''
+    }
+  }
   try {
     const allData = [];
     for (const playerId of playerIds) {
       const response = await fetch(
-          `https://api.opendota.com/api/players/${playerId}/matches?limit=${numberOfMatch}&lobby_type=7`);
+          `https://api.opendota.com/api/players/${playerId}/matches?limit=${numberOfMatch}&${gameType}`);
       if (!response.ok) {
         throw new Error(
             `Failed to fetch data for player ${playerId}! Try again later`);
@@ -158,10 +168,7 @@ async function createGraph() {
         },
         animation: {
           onComplete: function () {
-            const dotabuffLink = `https://www.dotabuff.com/players/${playerIds[0]}`;
-            const dotabuffIcon = document.getElementById('profileBtn');
-            dotabuffIcon.href = dotabuffLink;
-            document.getElementById('showAfterCreated').style.display = 'block';
+            onCompleteShowDotaBuff(playerIds);
           }
         }
       }
@@ -241,7 +248,12 @@ async function createGraph() {
         plugins: {
           tooltip: {
             mode: 'index',
-            intersect: false
+            intersect: false,
+            callbacks: {
+              title : function () {
+                return 'Score'
+              }
+            }
           }
         },
         layout: {
@@ -274,29 +286,32 @@ async function createGraph() {
         },
         animation: {
           onComplete: function () {
-            const container = document.getElementById('profileBtnContainer');
-            container.innerHTML = '';
-            for (let i = 0; i < playerIds.length; i++) {
-              const dotabuffIcon = document.createElement('a');
-              dotabuffIcon.href = `https://www.dotabuff.com/players/${playerIds[i]}`;
-              dotabuffIcon.target = "_blank";
-
-              const img = document.createElement('img');
-              img.src = "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg";
-              img.alt = "Dotabuff Icon";
-              img.classList.add("dotabuff-icon");
-
-              dotabuffIcon.appendChild(img);
-              container.appendChild(dotabuffIcon);
-            }
-
-            document.getElementById('showAfterCreated').style.display = 'block';
+            onCompleteShowDotaBuff(playerIds)
           }
         }
       }
     });
   }
+}
 
+function onCompleteShowDotaBuff(playerIds) {
+  const container = document.getElementById('profileBtnContainer');
+  container.innerHTML = '';
+  for (let i = 0; i < playerIds.length; i++) {
+    const dotabuffIcon = document.createElement('a');
+    dotabuffIcon.href = `https://www.dotabuff.com/players/${playerIds[i]}`;
+    dotabuffIcon.target = "_blank";
+
+    const img = document.createElement('img');
+    img.src = "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg";
+    img.alt = "Dotabuff Icon";
+    img.classList.add("dotabuff-icon");
+
+    dotabuffIcon.appendChild(img);
+    container.appendChild(dotabuffIcon);
+  }
+
+  document.getElementById('showAfterCreated').style.display = 'block';
 }
 
 async function takeScreenshot() {
@@ -377,6 +392,7 @@ function togglePlayerInputs() {
   const currentMmr = document.getElementById('currentMmr')
   const currentMmrText = document.getElementById('currentMmrText')
   const playerIdContainer = document.getElementById('inputs');
+  const gameType = document.getElementById('gameType');
   playerIdContainer.innerHTML = '';
   for (let i = 1; i <= numberOfId; i++) {
     const playerInput = document.createElement('input');
@@ -391,12 +407,13 @@ function togglePlayerInputs() {
   if (numberOfId === 1) {
     currentMmr.style.display = 'block';
     currentMmrText.style.display = 'block';
+    gameType.style.display='none'
   } else {
     currentMmr.style.display = 'none';
     currentMmrText.style.display = 'none';
+    gameType.style.display='block'
   }
 }
-
 document.getElementById('screenshotBtn').addEventListener('click',
     takeScreenshot);
 document.getElementById('dotaGraph').addEventListener('click', clickHandler);
