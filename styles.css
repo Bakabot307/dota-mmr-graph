@@ -1,4 +1,4 @@
-#createGraphBtn,#screenshotBtn {
+#createGraphBtn, #screenshotBtn {
   padding: 10px 20px;
   background-color: #4CAF50;
   color: white;
@@ -7,6 +7,7 @@
   cursor: pointer;
   font-size: 16px;
 }
+
 #screenshotBtn {
   padding: 10px 20px;
   background-color: orangered;
@@ -17,17 +18,20 @@
   font-size: 16px;
   align-self: center;
 }
-#createGraphBtn:hover,#screenshotBtn:hover {
+
+#createGraphBtn:hover, #screenshotBtn:hover {
   background-color: #45a049;
 }
-.inputField,#playerSelection {
+
+.inputField, #playerSelection {
   padding: 8px 10px;
   margin: 5px;
   border-radius: 5px;
   border: 1px solid #ccc;
   font-size: 16px;
 }
-.inputField:focus,#playerSelection:focus {
+
+.inputField:focus, #playerSelection:focus {
   outline: none;
   border-color: #4CAF50;
 }
@@ -40,33 +44,37 @@
   height: 100%; /* Optionally set a height to ensure vertical centering */
 }
 
-#messages{
+#messages {
   display: none;
   color: red;
 }
 
-#showAfterCreated{
+#showAfterCreated {
   display: none;
   margin-top: 15px;
   text-align: center;
 }
+
 .dotabuff-icon {
   height: 40px;
   width: 40px;
   cursor: pointer;
   font-size: 16px;
   vertical-align: middle;
-  margin-right: 10px;
+  margin: 0 5px;
 }
-.input-container{
+
+.input-container {
   display: flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
 }
 
-#profileBtnContainer{
- float:right;
+#profileBtnContainer {
+  float: right;
 }
+
+
 
 

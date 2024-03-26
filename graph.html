@@ -4,31 +4,29 @@
   <meta charset="UTF-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>Dota 2 Match History Graph</title>
-  <link rel="stylesheet" type="text/css" href="styles.css">
+  <link href="styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
 <div class="input-container" style="text-align: center;">
-  <label for="playerSelection">Number of Players:</label>
-  <select id="playerSelection" onchange="togglePlayerInputs()">
-    <option value="1">1</option>
-    <option value="2">2</option>
-  </select>
+  <label for="numberOfPlayer">Number of Players:</label>
+  <input class="inputField" id="numberOfPlayer" max="5" min="1" oninput="togglePlayerInputs()" type="number" value="1">
   <label for="playerId1">Player ID:</label>
-  <input id="playerId1" class="inputField" placeholder="Enter Player ID" type="number">
-  <input id="playerId2" class="inputField" placeholder="Enter Player 2 ID" type="number" style="display: none;">
-  <label id="currentMmrText" for="currentMmr">Current MMR:</label>
-  <input id="currentMmr" class="inputField" placeholder="Enter current MMR" type="number" >
+  <div id="inputs">
+    <input class="inputField" id="playerId1" placeholder="Enter Player 1 ID" type="number">
+  </div>
+  <label for="currentMmr" id="currentMmrText">Current MMR:</label>
+  <input class="inputField" id="currentMmr" placeholder="Enter current MMR" type="number">
   <label for="numberOfMatch">Matches:</label>
-  <input id="numberOfMatch" class="inputField" placeholder="Enter number of match" type="number" value="100">
+  <input class="inputField" id="numberOfMatch" placeholder="Enter number of match" type="number" value="100">
   <button id="createGraphBtn" onclick="createGraph()">Create Graph</button>
   <a href="https://github.com/Bakabot307/dota-mmr-graph" target="_blank">Suggestion?</a>
 </div>
 
 <div class="canvas-container">
-    <label id="errors" style="color: red"></label>
-  <canvas width="1200px" height="600px" id="dotaGraph"></canvas>
+  <label id="errors" style="color: red"></label>
+  <canvas height="600px" id="dotaGraph" width="1200px"></canvas>
   <div id="showAfterCreated">
-    <button id="screenshotBtn" >Take Screenshot</button>
+    <button id="screenshotBtn">Take Screenshot</button>
     <div id="profileBtnContainer">
     </div>
     <p id="instructions" style="font-size: 14px; color: #666;">* Click on the tick labels to view matches on Dotabuff</p>

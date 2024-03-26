@@ -173,8 +173,9 @@ async function createGraph() {
       const b = Math.floor(Math.random() * 256);
       return `rgb(${r}, ${g}, ${b})`;
     }
+
     let datasetsArray = [];
-    let  max = 0, min = 0;
+    let max = 0, min = 0;
     for (let i = 0; i < numberOfId; i++) {
       const data = datas[i].data.reverse();
       const mmrData = [];
@@ -183,7 +184,8 @@ async function createGraph() {
       for (let j = 1; j < data.length; j++) {
         const playerSlot = data[j].player_slot;
         const isRadiant = playerSlot < 128;
-        const wonMatch = (isRadiant && data[j].radiant_win) || (!isRadiant && !data[j].radiant_win);
+        const wonMatch = (isRadiant && data[j].radiant_win) || (!isRadiant
+            && !data[j].radiant_win);
         if (wonMatch) {
           mmr += 1;
         } else {
@@ -193,17 +195,14 @@ async function createGraph() {
       }
       const minIndex = mmrData.indexOf(Math.min(...mmrData.slice(1)));
       const maxIndex = mmrData.indexOf(Math.max(...mmrData.slice(1)));
-      const subMin =Math.min(...mmrData);
-      const subMax =Math.max(...mmrData);
-      console.log(subMax)
-      console.log(subMin)
-      if(subMin < min) {
+      const subMin = Math.min(...mmrData);
+      const subMax = Math.max(...mmrData);
+      if (subMin < min) {
         min = subMin
       }
-      if(subMax > max) {
+      if (subMax > max) {
         max = subMax
       }
-      console.log(mmrData)
       datasetsArray.push({
         label: `${datas[i].playerId}`,
         data: mmrData,
@@ -212,12 +211,11 @@ async function createGraph() {
         pointRadius: numberOfMatch < 251 ? 2 : 0,
         datalabels: {
           align: function (context) {
-            console.log(context)
             if (context.dataIndex === minIndex) {
               return 'bottom';
             } else if (context.dataIndex === maxIndex) {
               return 'top';
-            } else if (context.dataIndex === numberOfMatch-1) {
+            } else if (context.dataIndex === numberOfMatch - 1) {
               return 'right';
             } else {
               return null;
@@ -231,7 +229,7 @@ async function createGraph() {
         }
       });
     }
-    console.log(max,min)
+
     myChart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -270,8 +268,8 @@ async function createGraph() {
               display: true,
               text: 'GAME RECORDS'
             },
-            min:min-1,
-            max:max+1
+            min: min - 1,
+            max: max + 1
           }
         },
         animation: {
@@ -341,7 +339,7 @@ async function saveGraphAsImage() {
 }
 
 function clickHandler(evt) {
-  if(numberOfId===1){
+  if (numberOfId === 1) {
     const points = myChart.getElementsAtEventForMode(evt, 'nearest',
         {intersect: true}, true);
     if (points.length) {
@@ -363,21 +361,39 @@ function setLatestPlayerId() {
     }
   });
 }
+
 function togglePlayerInputs() {
-  const playerSelection = document.getElementById('playerSelection');
-  const playerId2Input = document.getElementById('playerId2');
+  numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
+  if (numberOfId < 1 || isNaN(numberOfId)) {
+    document.getElementById("numberOfPlayer").value = 1
+    numberOfId = 1
+  }
+
+  if (numberOfId > 5 || isNaN(numberOfId)) {
+    document.getElementById("numberOfPlayer").value = 5
+    numberOfId = 5
+  }
+
   const currentMmr = document.getElementById('currentMmr')
   const currentMmrText = document.getElementById('currentMmrText')
-  if (playerSelection.value === '1') {
-    numberOfId = 1;
-    playerId2Input.style.display = 'none';
-    currentMmr.style.display = 'block'
-    currentMmrText.style.display = 'block'
-  } else if (playerSelection.value === '2') {
-    numberOfId = 2;
-    playerId2Input.style.display = 'block';
-    currentMmr.style.display = 'none'
-    currentMmrText.style.display = 'none'
+  const playerIdContainer = document.getElementById('inputs');
+  playerIdContainer.innerHTML = '';
+  for (let i = 1; i <= numberOfId; i++) {
+    const playerInput = document.createElement('input');
+    playerInput.type = 'number';
+    playerInput.id = 'playerId' + i;
+    playerInput.placeholder = 'Enter Player ' + i + ' ID';
+    playerInput.min = '1';
+    playerInput.className = "inputField"
+    playerIdContainer.appendChild(playerInput);
+  }
+  setLatestPlayerId();
+  if (numberOfId === 1) {
+    currentMmr.style.display = 'block';
+    currentMmrText.style.display = 'block';
+  } else {
+    currentMmr.style.display = 'none';
+    currentMmrText.style.display = 'none';
   }
 }
 
