@@ -7,10 +7,16 @@
   <link rel="stylesheet" type="text/css" href="styles.css">
 </head>
 <body>
-<div style="text-align: center;">
-  <label for="playerId">Player ID:</label>
-  <input id="playerId" class="inputField" placeholder="Enter Player ID" type="number" >
-  <label for="currentMmr">Current MMR:</label>
+<div class="input-container" style="text-align: center;">
+  <label for="playerSelection">Number of Players:</label>
+  <select id="playerSelection" onchange="togglePlayerInputs()">
+    <option value="1">1</option>
+    <option value="2">2</option>
+  </select>
+  <label for="playerId1">Player ID:</label>
+  <input id="playerId1" class="inputField" placeholder="Enter Player ID" type="number">
+  <input id="playerId2" class="inputField" placeholder="Enter Player 2 ID" type="number" style="display: none;">
+  <label id="currentMmrText" for="currentMmr">Current MMR:</label>
   <input id="currentMmr" class="inputField" placeholder="Enter current MMR" type="number" >
   <label for="numberOfMatch">Matches:</label>
   <input id="numberOfMatch" class="inputField" placeholder="Enter number of match" type="number" value="100">
@@ -23,9 +29,8 @@
   <canvas width="1200px" height="600px" id="dotaGraph"></canvas>
   <div id="showAfterCreated">
     <button id="screenshotBtn" >Take Screenshot</button>
-    <a id="profileBtn" href="https://dotabuff.com/" target="_blank">
-      <img src="https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg" alt="Dotabuff Icon" class="dotabuff-icon">
-    </a>
+    <div id="profileBtnContainer">
+    </div>
     <p id="instructions" style="font-size: 14px; color: #666;">* Click on the tick labels to view matches on Dotabuff</p>
   </div>
 

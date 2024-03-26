@@ -20,14 +20,14 @@
 #createGraphBtn:hover,#screenshotBtn:hover {
   background-color: #45a049;
 }
-.inputField {
+.inputField,#playerSelection {
   padding: 8px 10px;
   margin: 5px;
   border-radius: 5px;
   border: 1px solid #ccc;
   font-size: 16px;
 }
-.inputField:focus {
+.inputField:focus,#playerSelection:focus {
   outline: none;
   border-color: #4CAF50;
 }
@@ -48,6 +48,7 @@
 #showAfterCreated{
   display: none;
   margin-top: 15px;
+  text-align: center;
 }
 .dotabuff-icon {
   height: 40px;
@@ -55,5 +56,17 @@
   cursor: pointer;
   font-size: 16px;
   vertical-align: middle;
+  margin-right: 10px;
 }
+.input-container{
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+}
+
+#profileBtnContainer{
+ float:right;
+}
+
 
