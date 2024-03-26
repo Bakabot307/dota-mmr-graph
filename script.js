@@ -376,7 +376,7 @@ async function saveGraphAsImage() {
 }
 
 function clickHandler(evt) {
-  if (numberOfId === 1) {
+  if (numberOfId === 1 && myChart!==undefined && !selfCompare) {
     const points = myChart.getElementsAtEventForMode(evt, 'nearest',
         {intersect: true}, true);
     if (points.length) {
@@ -401,10 +401,6 @@ function setLatestPlayerId() {
 
 function togglePlayerInputs() {
   numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
-  if (numberOfId < 2 && selfCompare || isNaN(numberOfId) & selfCompare) {
-    document.getElementById("numberOfPlayer").value = 2
-    numberOfId = 2
-  }
   if (numberOfId < 1 || isNaN(numberOfId)) {
     document.getElementById("numberOfPlayer").value = 1
     numberOfId = 1
@@ -453,18 +449,24 @@ document.getElementById('checkbox').addEventListener('change',
       const currentMmrText = document.getElementById('currentMmrText')
       const numberOfPlayerText = document.getElementById('numberOfPlayerText')
       const numberOfPlayer = document.getElementById('numberOfPlayer')
+      const inputs = document.getElementById('inputs')
       if (this.checked) {
         selfCompare = true;
         currentMmr.style.display = 'none';
         currentMmrText.style.display = 'none';
         numberOfPlayerText.textContent = "Number of Graph:"
-        numberOfPlayer.value = 2;
+        numberOfPlayer.value = 1;
+        if (inputs.children.length > 1) {
+          for (let i = inputs.children.length - 1; i > 0; i--) {
+            inputs.removeChild(inputs.children[i]);
+          }
+        }
       } else {
         selfCompare = false;
         currentMmr.style.display = 'block';
         currentMmrText.style.display = 'block';
         numberOfPlayerText.textContent = "Number of Player:"
-        numberOfPlayer.value = 1;
+        numberOfPlayer.value=1;
         numberOfId = 1;
       }
     });
