@@ -354,12 +354,15 @@ function clickHandler(evt) {
 }
 
 function setLatestPlayerId() {
-  const playerId = localStorage.getItem('playerId');
-  if (playerId) {
-    document.getElementById('playerId1').value = playerId;
-  }
+  const playerIds = JSON.parse(localStorage.getItem('playerIds')) || [];
+  playerIds.forEach((playerId, index) => {
+    const elementId = 'playerId' + (index + 1);
+    const element = document.getElementById(elementId);
+    if (element) {
+      element.value = playerId;
+    }
+  });
 }
-
 function togglePlayerInputs() {
   const playerSelection = document.getElementById('playerSelection');
   const playerId2Input = document.getElementById('playerId2');
