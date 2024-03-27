@@ -20,6 +20,7 @@ async function fetchData(playerIds, numberOfMatch) {
   }
   try {
     const allData = [];
+    let dataLength = 0;
     for (const playerId of playerIds) {
       const response = await fetch(
           `https://api.opendota.com/api/players/${playerId}/matches?limit=${userNumberOfMatch}&${gameType}`);
@@ -49,9 +50,23 @@ async function fetchData(playerIds, numberOfMatch) {
               {playerId: convertTime(timeStart, timeEnd), data: chunkData});
         }
       } else {
-        allData.push({playerId, data});
+        if (allData.length === 0) {
+          allData.push({playerId, data});
+        } else if (allData[0] < data.length) {
+          allData.push({playerId, data})
+        } else {
+          allData.unshift({playerId, data});
+        }
       }
     }
+    if(!selfCompare && numberOfId>1){
+      for (let i = 1; i < allData.length; i++) {
+        if (allData[i].data.length > allData[0].data.length) {
+          allData[i].data = allData[i].data.slice(0, allData[0].data.length);
+        }
+      }
+    }
+
     document.getElementById('errors').textContent = "";
     localStorage.setItem("playerIds", JSON.stringify(playerIds));
     return allData;
@@ -285,8 +300,9 @@ async function createGraph() {
             title: {
               display: true,
               text: selfCompare
-                  ? `SELF COMPARING SCORE ACROSS ${datasetsArray[0].data.length*numberOfId} MATCHES IN ${numberOfId} PERIODS FOR ${playerIds[0]}`
-                  : `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${numberOfMatch} MATCHES`
+                  ? `SELF COMPARING SCORE ACROSS ${datasetsArray[0].data.length
+                  * numberOfId} MATCHES IN ${numberOfId} PERIODS FOR ${playerIds[0]}`
+                  : `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${datasetsArray[0].data.length} MATCHES`
             }, ticks: {
               maxTicksLimit: 12, callback: function (value, index, values) {
                 return index + 1;
