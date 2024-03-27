@@ -25,11 +25,12 @@ async function fetchData(playerIds, numberOfMatch) {
           `https://api.opendota.com/api/players/${playerId}/matches?limit=${userNumberOfMatch}&${gameType}`);
       if (!response.ok) {
         throw new Error(
-            `Failed to fetch data for player ${playerId}! Try again later`);
+            `Failed to fetch data for player ${playerId}! Try again later!`);
       }
       const data = await response.json();
       if (data.length === 0) {
-        throw new Error(`ID ${playerId} does not exist or is private`);
+        throw new Error(
+            `ID ${playerId} does not exist or not public matches data!`);
       } else {
         numberOfMatch = data.length
         if (selfCompare) {
@@ -77,6 +78,7 @@ function formatDate(date) {
   const year = String(date.getFullYear()).slice(2);
   return `${day}/${month}/${year}`;
 }
+
 let myChart;
 
 async function createGraph() {
@@ -94,8 +96,8 @@ async function createGraph() {
       return;
     }
   }
-  if (isNaN(currentMmr) && numberOfId === 1 && !selfCompare
-      || currentMmr <= 0 && numberOfId === 1 && !selfCompare) {
+  if (isNaN(currentMmr) && numberOfId === 1 && !selfCompare || currentMmr <= 0
+      && numberOfId === 1 && !selfCompare) {
     document.getElementById('errors').textContent = 'Mmr > 0';
     return;
   }
@@ -140,14 +142,11 @@ async function createGraph() {
     let lowestMMRIndex = mmrData.length - 1 - mmrData.slice().reverse().indexOf(
         Math.min(...mmrData));
     let highestMMRIndex = mmrData.length - 1
-        - mmrData.slice().reverse().indexOf(
-            Math.max(...mmrData));
+        - mmrData.slice().reverse().indexOf(Math.max(...mmrData));
 
     myChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: matchIdData,
-        datasets: [{
+      type: 'line', data: {
+        labels: matchIdData, datasets: [{
           label: `MMR`,
           data: mmrData,
           borderColor: 'rgb(75, 192, 192)',
@@ -164,47 +163,35 @@ async function createGraph() {
               } else {
                 return null;
               }
-            },
-            display: function (context) {
+            }, display: function (context) {
               return context.dataIndex === lowestMMRIndex || context.dataIndex
-              === highestMMRIndex || context.dataIndex === numberOfMatch - 1 ?
-                  context.dataIndex : '';
+              === highestMMRIndex || context.dataIndex === numberOfMatch - 1
+                  ? context.dataIndex : '';
             }
           }
         }]
-      },
-      plugins: [ChartDataLabels],
-      options: {
+      }, plugins: [ChartDataLabels], options: {
         layout: {
           padding: {
             right: 50,
 
           }
-        },
-        responsive: false,
-        scales: {
+        }, responsive: false, scales: {
           x: {
             title: {
               display: true,
-              text: `MMR PROGRESSION OVER ${numberOfMatch} MATCHES FOR ${playerIds[0]}`
-            },
-            ticks: {
-              maxTicksLimit: 12,
-              callback: function (value, index, values) {
+              text: `MMR PROGRESSION OVER ${data.length} MATCHES FOR ${playerIds[0]}`
+            }, ticks: {
+              maxTicksLimit: 12, callback: function (value, index, values) {
                 return index + 1;
               }
             }
-          },
-          y: {
+          }, y: {
             title: {
-              display: true,
-              text: 'MMR'
-            },
-            min: Math.min(...mmrData) - 25,
-            max: Math.max(...mmrData) + 25,
+              display: true, text: 'MMR'
+            }, min: Math.min(...mmrData) - 25, max: Math.max(...mmrData) + 25,
           }
-        },
-        animation: {
+        }, animation: {
           onComplete: function (chart) {
             if (chart.initial) {
               onCompleteShowDotaBuff(playerIds)
@@ -267,67 +254,50 @@ async function createGraph() {
             } else {
               return null;
             }
-          },
-          display: function (context) {
+          }, display: function (context) {
             return context.dataIndex === minIndex || context.dataIndex
-            === maxIndex || context.dataIndex === numberOfMatch - 1 ?
-                context.dataIndex : '';
+            === maxIndex || context.dataIndex === numberOfMatch - 1
+                ? context.dataIndex : '';
           }
         }
       });
     }
 
     myChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: Array.from({length: numberOfMatch}, (_, index) => index + 1),
-        datasets: datasetsArray,
-      },
-      plugins: [ChartDataLabels],
-      options: {
+      type: 'line', data: {
+        labels: Array.from({length: datasetsArray[0].data.length},
+            (_, index) => index + 1), datasets: datasetsArray,
+      }, plugins: [ChartDataLabels], options: {
         plugins: {
           tooltip: {
-            mode: 'index',
-            intersect: false,
-            callbacks: {
+            mode: 'index', intersect: false, callbacks: {
               title: function () {
                 return 'Score'
               }
             }
           }
-        },
-        layout: {
+        }, layout: {
           padding: {
             right: 50,
           }
-        },
-        responsive: false,
-        scales: {
+        }, responsive: false, scales: {
           x: {
             title: {
               display: true,
               text: selfCompare
-                  ? `SELF COMPARING SCORE ACROSS ${numberOfMatch
-                  * numberOfId} MATCHES IN ${numberOfId} PERIODS FOR ${playerIds[0]}`
+                  ? `SELF COMPARING SCORE ACROSS ${datasetsArray[0].data.length*numberOfId} MATCHES IN ${numberOfId} PERIODS FOR ${playerIds[0]}`
                   : `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${numberOfMatch} MATCHES`
-            },
-            ticks: {
-              maxTicksLimit: 12,
-              callback: function (value, index, values) {
+            }, ticks: {
+              maxTicksLimit: 12, callback: function (value, index, values) {
                 return index + 1;
               }
             }
-          },
-          y: {
+          }, y: {
             title: {
-              display: true,
-              text: 'GAME RECORDS'
-            },
-            min: min - 1,
-            max: max + 1
+              display: true, text: 'GAME RECORDS'
+            }, min: min - 1, max: max + 1
           }
-        },
-        animation: {
+        }, animation: {
           onComplete: function (chart) {
             if (chart.initial) {
               onCompleteShowDotaBuff(playerIds)
@@ -462,15 +432,17 @@ function setLatestPlayerId() {
     }
   });
 }
+
 function onChangeNumberOfPlayer() {
   console.log('yo')
   numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
-  if (isNaN(numberOfId)){
-    document.getElementById("numberOfPlayer").value= 1
+  if (isNaN(numberOfId)) {
+    document.getElementById("numberOfPlayer").value = 1
     onInPutNumberOfPlayer();
   }
 
 }
+
 function onInPutNumberOfPlayer() {
   numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
   if (numberOfId < 1) {
