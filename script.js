@@ -30,6 +30,11 @@ async function fetchData(playerIds, numberOfMatch) {
       const data = await response.json();
       if (data.length === 0) {
         throw new Error(`ID ${playerId} does not exist or is private`);
+      } else {
+        numberOfMatch = data.length
+        if (selfCompare) {
+          numberOfMatch = Math.floor(data.length / numberOfId);
+        }
       }
       if (selfCompare) {
         const chunkSize = numberOfMatch;
@@ -37,8 +42,10 @@ async function fetchData(playerIds, numberOfMatch) {
           const startIndex = i * chunkSize;
           const endIndex = Math.min(startIndex + chunkSize, data.length);
           const chunkData = data.slice(startIndex, endIndex);
-          const stringId = `${startIndex + 1}-${endIndex}`;
-          allData.push({playerId: stringId, data: chunkData});
+          const timeStart = chunkData[0].start_time;
+          const timeEnd = chunkData[chunkSize - 1].start_time;
+          allData.push(
+              {playerId: convertTime(timeStart, timeEnd), data: chunkData});
         }
       } else {
         allData.push({playerId, data});
@@ -54,6 +61,22 @@ async function fetchData(playerIds, numberOfMatch) {
   }
 }
 
+function convertTime(timeStart, timeEnd) {
+  const startDate = new Date(timeStart * 1000);
+  const endDate = new Date(timeEnd * 1000);
+  const timeDiff = Math.abs(endDate.getTime() - startDate.getTime());
+  const dayDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+  const startDateFormatted = formatDate(startDate);
+  const endDateFormatted = formatDate(endDate);
+  return `${startDateFormatted} - ${endDateFormatted} (${dayDiff} days)`;
+}
+
+function formatDate(date) {
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = String(date.getFullYear()).slice(2);
+  return `${day}/${month}/${year}`;
+}
 let myChart;
 
 async function createGraph() {
@@ -125,7 +148,7 @@ async function createGraph() {
       data: {
         labels: matchIdData,
         datasets: [{
-          label: 'MMR',
+          label: `MMR`,
           data: mmrData,
           borderColor: 'rgb(75, 192, 192)',
           fill: false,
@@ -163,7 +186,7 @@ async function createGraph() {
           x: {
             title: {
               display: true,
-              text: `MMR PROGRESSION OVER ${numberOfMatch} MATCHES`
+              text: `MMR PROGRESSION OVER ${numberOfMatch} MATCHES FOR ${playerIds[0]}`
             },
             ticks: {
               maxTicksLimit: 12,
@@ -183,7 +206,7 @@ async function createGraph() {
         },
         animation: {
           onComplete: function (chart) {
-            if(chart.initial){
+            if (chart.initial) {
               onCompleteShowDotaBuff(playerIds)
             }
           }
@@ -284,8 +307,8 @@ async function createGraph() {
             title: {
               display: true,
               text: selfCompare
-                  ? `SELF COMPARING SCORE FROM 1-${numberOfMatch} TO ${numberOfMatch}-${numberOfMatch
-                  * 2}`
+                  ? `SELF COMPARING SCORE ACROSS ${numberOfMatch
+                  * numberOfId} MATCHES IN ${numberOfId} PERIODS FOR ${playerIds[0]}`
                   : `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${numberOfMatch} MATCHES`
             },
             ticks: {
@@ -306,7 +329,7 @@ async function createGraph() {
         },
         animation: {
           onComplete: function (chart) {
-            if(chart.initial){
+            if (chart.initial) {
               onCompleteShowDotaBuff(playerIds)
             }
           }
@@ -315,6 +338,7 @@ async function createGraph() {
     });
   }
 }
+
 function somethingFun() {
   const container = document.getElementById('zoomContainer');
   if (!container || container.children.length === 0) {
@@ -350,10 +374,11 @@ function somethingFun() {
   }
 
 }
+
 function onCompleteShowDotaBuff(playerIds) {
   const container = document.getElementById('profileBtnContainer');
   container.innerHTML = '';
-  if(playerIds.length===1 && playerIds[0]===56939869){
+  if (playerIds.length === 1 && playerIds[0] === 56939869) {
     somethingFun();
   }
   for (let i = 0; i < playerIds.length; i++) {
@@ -415,7 +440,7 @@ async function saveGraphAsImage() {
 }
 
 function clickHandler(evt) {
-  if (numberOfId === 1 && myChart!==undefined && !selfCompare) {
+  if (numberOfId === 1 && myChart !== undefined && !selfCompare) {
     const points = myChart.getElementsAtEventForMode(evt, 'nearest',
         {intersect: true}, true);
     if (points.length) {
@@ -504,7 +529,7 @@ document.getElementById('checkbox').addEventListener('change',
         currentMmr.style.display = 'block';
         currentMmrText.style.display = 'block';
         numberOfPlayerText.textContent = "Number of Player:"
-        numberOfPlayer.value=1;
+        numberOfPlayer.value = 1;
         numberOfId = 1;
       }
     });
