@@ -37,7 +37,7 @@ async function fetchData(playerIds, numberOfMatch) {
           const startIndex = i * chunkSize;
           const endIndex = Math.min(startIndex + chunkSize, data.length);
           const chunkData = data.slice(startIndex, endIndex);
-          const stringId = `${startIndex + 1}-${endIndex}`; // Assuming playerIds start from 1
+          const stringId = `${startIndex + 1}-${endIndex}`;
           allData.push({playerId: stringId, data: chunkData});
         }
       } else {
@@ -182,8 +182,10 @@ async function createGraph() {
           }
         },
         animation: {
-          onComplete: function () {
-            onCompleteShowDotaBuff(playerIds);
+          onComplete: function (chart) {
+            if(chart.initial){
+              onCompleteShowDotaBuff(playerIds)
+            }
           }
         }
       }
@@ -303,28 +305,65 @@ async function createGraph() {
           }
         },
         animation: {
-          onComplete: function () {
-            onCompleteShowDotaBuff(playerIds)
+          onComplete: function (chart) {
+            if(chart.initial){
+              onCompleteShowDotaBuff(playerIds)
+            }
           }
         }
       }
     });
   }
 }
+function somethingFun() {
+  const container = document.getElementById('zoomContainer');
+  if (!container || container.children.length === 0) {
+    const container = document.createElement('div');
+    container.id = 'zoomContainer';
+    container.style.position = 'fixed';
+    container.style.top = '50%';
+    container.style.left = '50%';
+    container.style.transform = 'translate(-50%, -50%)';
+    document.body.appendChild(container);
 
+    const image = new Image();
+    image.src = 'https://cdn.7tv.app/emote/659fe79c55fdc99dc17f4b87/4x.png';
+    image.style.transition = 'transform 2s';
+    image.style.width = '200px';
+
+    image.addEventListener('mouseenter', () => {
+      image.style.transform = 'scale(2)';
+    });
+
+    image.addEventListener('transitionend', () => {
+      setTimeout(() => {
+        image.style.transform = 'scale(1)';
+      }, 2000);
+      setTimeout(() => {
+        container.removeChild(image);
+        setTimeout(() => {
+          document.body.removeChild(container);
+        }, 2000);
+      }, 2000);
+    });
+    container.appendChild(image);
+  }
+
+}
 function onCompleteShowDotaBuff(playerIds) {
   const container = document.getElementById('profileBtnContainer');
   container.innerHTML = '';
+  if(playerIds.length===1 && playerIds[0]===56939869){
+    somethingFun();
+  }
   for (let i = 0; i < playerIds.length; i++) {
     const dotabuffIcon = document.createElement('a');
     dotabuffIcon.href = `https://www.dotabuff.com/players/${playerIds[i]}`;
     dotabuffIcon.target = "_blank";
-
     const img = document.createElement('img');
-    img.src = "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg";
     img.alt = "Dotabuff Icon";
     img.classList.add("dotabuff-icon");
-
+    img.src = "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg";
     dotabuffIcon.appendChild(img);
     container.appendChild(dotabuffIcon);
   }
@@ -358,7 +397,7 @@ async function takeScreenshot() {
     document.getElementById('messages').style.display = 'block';
     setTimeout(() => {
       document.getElementById('messages').style.display = 'none';
-    }, 3000); // Hide after 3 seconds
+    }, 3000);
   } catch (error) {
     console.error('Failed to save screenshot to clipboard:', error);
   }
@@ -444,7 +483,6 @@ function togglePlayerInputs() {
 
 document.getElementById('checkbox').addEventListener('change',
     function (event) {
-      // Check if the checkbox is checked
       const currentMmr = document.getElementById('currentMmr')
       const currentMmrText = document.getElementById('currentMmrText')
       const numberOfPlayerText = document.getElementById('numberOfPlayerText')
