@@ -79,6 +79,22 @@
   clear: both;
   margin-top: 10px;
 }
+@media screen and (max-width: 600px) {
+  .input-container {
+    width: 90%; /* Adjust the width as needed */
+    margin: auto; /* Center horizontally */
+    flex-direction: column; /* Stack elements vertically */
+    text-align: center; /* Center text */
+  }
+
+  .inputField, #playerSelection {
+    width: 90%; /* Make input fields wider */
+  }
+
+  #gameType {
+    width: auto; /* Reset width for select dropdown */
+  }
+}
 
 
 

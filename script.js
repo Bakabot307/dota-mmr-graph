@@ -462,14 +462,22 @@ function setLatestPlayerId() {
     }
   });
 }
-
-function togglePlayerInputs() {
+function onChangeNumberOfPlayer() {
+  console.log('yo')
   numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
-  if (numberOfId < 1 || isNaN(numberOfId)) {
+  if (isNaN(numberOfId)){
+    document.getElementById("numberOfPlayer").value= 1
+    onInPutNumberOfPlayer();
+  }
+
+}
+function onInPutNumberOfPlayer() {
+  numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
+  if (numberOfId < 1) {
     document.getElementById("numberOfPlayer").value = 1
     numberOfId = 1
   }
-  if (numberOfId > 5 || isNaN(numberOfId)) {
+  if (numberOfId > 5) {
     document.getElementById("numberOfPlayer").value = 5
     numberOfId = 5
   }
@@ -518,7 +526,6 @@ document.getElementById('checkbox').addEventListener('change',
         currentMmr.style.display = 'none';
         currentMmrText.style.display = 'none';
         numberOfPlayerText.textContent = "Number of Graph:"
-        numberOfPlayer.value = 1;
         if (inputs.children.length > 1) {
           for (let i = inputs.children.length - 1; i > 0; i--) {
             inputs.removeChild(inputs.children[i]);
@@ -529,8 +536,8 @@ document.getElementById('checkbox').addEventListener('change',
         currentMmr.style.display = 'block';
         currentMmrText.style.display = 'block';
         numberOfPlayerText.textContent = "Number of Player:"
-        numberOfPlayer.value = 1;
         numberOfId = 1;
+        onInPutNumberOfPlayer()
       }
     });
 
