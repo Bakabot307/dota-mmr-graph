@@ -8,7 +8,7 @@
   font-size: 16px;
 }
 
-#screenshotBtn,#screenshotBtn,#uploadToImgur {
+#screenshotBtn,#screenshotBtn,#uploadToImgur,#copyLink {
   padding: 10px 20px;
   background-color: orangered;
   color: white;

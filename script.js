@@ -94,12 +94,14 @@ function formatDate(date) {
 }
 
 let myChart;
-const playerIds = [];
+
 
 async function createGraph() {
+  const playerIds = [];
   document.getElementById("uploadedLink").innerHTML = '';
   document.getElementById("uploadedLink").href = '';
   document.getElementById("uploadToImgur").style.display = 'inline-block'
+  document.getElementById("copyLink").style.display = 'none'
   const currentMmr = parseInt(document.getElementById('currentMmr').value);
   const numberOfMatch = parseInt(
       document.getElementById('numberOfMatch').value);
@@ -364,7 +366,7 @@ function somethingFun() {
 
 function onCompleteShowDotaBuff(playerIdsF) {
   const container = document.getElementById('profileBtnContainer');
-  container.innerHTML = '';
+  container.innerHTML='';
   if (playerIdsF.length === 1 && playerIdsF[0] === 56939869) {
     somethingFun();
   }
@@ -421,17 +423,22 @@ async function uploadToImgur() {
       const link = data.data.link;
       console.log('Image uploaded successfully. Image link: ' + link);
       const uploadedLink = document.getElementById("uploadedLink");
-      document.getElementById("uploadToImgur").style.display = 'none'
+      const copyButton = document.getElementById('copyLink')
+      copyButton.style.display='inline-block';
+      copyButton.addEventListener('click', function() {
+        copyToClipboard(link);
+      });
       uploadedLink.href = link;
       uploadedLink.innerHTML = `${link}`
       saveImageLink(link)
+
     } else {
       console.error('Upload failed: ' + data.data.error);
     }
   } catch (error) {
     console.error('An error occurred:', error);
   } finally {
-    console.log("Finished");
+    document.getElementById("uploadToImgur").style.display='none';
   }
 }
 
@@ -502,14 +509,33 @@ function loadSavedPlayerLink() {
   const links = JSON.parse(localStorage.getItem('uploadedLinks')) || [];
   links.reverse().forEach((link, index) => {
     const linkElement = document.createElement('a');
+    const copyButton = document.createElement('button');
+    copyButton.textContent = 'Copy';
+    copyButton.style.marginLeft='5px';
+    copyButton.style.marginTop='5px';
+    copyButton.addEventListener('click', function() {
+      copyToClipboard(link);
+    });
     linkElement.href = link;
     linkElement.textContent = `${index + 1}. ${link}`;
-    linkElement.setAttribute('target', '_blank'); // Open links in a new tab
+    linkElement.setAttribute('target', '_blank');
+    linkElement.style.marginTop='5px';
+
     linksContainer.appendChild(linkElement);
-    linksContainer.appendChild(document.createElement('br')); // Add line break after each link
+    linksContainer.appendChild(copyButton)
+    linksContainer.appendChild(document.createElement('br'));
   });
 }
 
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text)
+  .then(() => {
+    alert(`Link copied to clipboard: ${text}`);
+  })
+  .catch(err => {
+    console.error('Failed to copy link: ', err);
+  });
+}
 function onChangeNumberOfPlayer() {
   numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
   if (isNaN(numberOfId)) {
