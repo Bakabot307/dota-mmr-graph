@@ -1,7 +1,7 @@
 let numberOfId = 1;
 let selfCompare = false;
 
-async function fetchData(playerIds, numberOfMatch) {
+async function fetchData(playerIdsF, numberOfMatch) {
   let userNumberOfMatch = numberOfMatch;
 
   if (selfCompare) {
@@ -20,8 +20,7 @@ async function fetchData(playerIds, numberOfMatch) {
   }
   try {
     const allData = [];
-    let dataLength = 0;
-    for (const playerId of playerIds) {
+    for (const playerId of playerIdsF) {
       const response = await fetch(
           `https://api.opendota.com/api/players/${playerId}/matches?limit=${userNumberOfMatch}&${gameType}`);
       if (!response.ok) {
@@ -59,7 +58,7 @@ async function fetchData(playerIds, numberOfMatch) {
         }
       }
     }
-    if(!selfCompare && numberOfId>1){
+    if (!selfCompare && numberOfId > 1) {
       for (let i = 1; i < allData.length; i++) {
         if (allData[i].data.length > allData[0].data.length) {
           allData[i].data = allData[i].data.slice(0, allData[0].data.length);
@@ -68,7 +67,7 @@ async function fetchData(playerIds, numberOfMatch) {
     }
 
     document.getElementById('errors').textContent = "";
-    localStorage.setItem("playerIds", JSON.stringify(playerIds));
+    localStorage.setItem("playerIds", JSON.stringify(playerIdsF));
     return allData;
   } catch (error) {
     console.error('Error fetching data:', error.message);
@@ -95,10 +94,12 @@ function formatDate(date) {
 }
 
 let myChart;
+const playerIds = [];
 
 async function createGraph() {
-  const playerIds = [];
-
+  document.getElementById("uploadedLink").innerHTML = '';
+  document.getElementById("uploadedLink").href = '';
+  document.getElementById("uploadToImgur").style.display = 'inline-block'
   const currentMmr = parseInt(document.getElementById('currentMmr').value);
   const numberOfMatch = parseInt(
       document.getElementById('numberOfMatch').value);
@@ -197,7 +198,7 @@ async function createGraph() {
               display: true,
               text: `MMR PROGRESSION OVER ${data.length} MATCHES FOR ${playerIds[0]}`
             }, ticks: {
-              maxTicksLimit: 12, callback: function (value, index, values) {
+              maxTicksLimit: 12, callback: function (value, index) {
                 return index + 1;
               }
             }
@@ -304,7 +305,7 @@ async function createGraph() {
                   * numberOfId} MATCHES IN ${numberOfId} PERIODS FOR ${playerIds[0]}`
                   : `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${datasetsArray[0].data.length} MATCHES`
             }, ticks: {
-              maxTicksLimit: 12, callback: function (value, index, values) {
+              maxTicksLimit: 12, callback: function (value, index) {
                 return index + 1;
               }
             }
@@ -361,15 +362,15 @@ function somethingFun() {
 
 }
 
-function onCompleteShowDotaBuff(playerIds) {
+function onCompleteShowDotaBuff(playerIdsF) {
   const container = document.getElementById('profileBtnContainer');
   container.innerHTML = '';
-  if (playerIds.length === 1 && playerIds[0] === 56939869) {
+  if (playerIdsF.length === 1 && playerIdsF[0] === 56939869) {
     somethingFun();
   }
-  for (let i = 0; i < playerIds.length; i++) {
+  for (let i = 0; i < playerIdsF.length; i++) {
     const dotabuffIcon = document.createElement('a');
-    dotabuffIcon.href = `https://www.dotabuff.com/players/${playerIds[i]}`;
+    dotabuffIcon.href = `https://www.dotabuff.com/players/${playerIdsF[i]}`;
     dotabuffIcon.target = "_blank";
     const img = document.createElement('img');
     img.alt = "Dotabuff Icon";
@@ -387,6 +388,54 @@ function onCompleteShowDotaBuff(playerIds) {
 }
 
 async function takeScreenshot() {
+  try {
+    const blob = await fetch(await createWhiteGraph()).then(res => res.blob());
+    const item = new ClipboardItem({'image/png': blob});
+    await navigator.clipboard.write([item]);
+    document.getElementById('messages').style.display = 'block';
+    setTimeout(() => {
+      document.getElementById('messages').style.display = 'none';
+    }, 3000);
+  } catch (error) {
+    console.error('Failed to save screenshot to clipboard:', error);
+  }
+}
+
+async function uploadToImgur() {
+  try {
+    const formData = new FormData();
+    const blob = await fetch(await createWhiteGraph()).then(res => res.blob());
+    formData.append('image', blob);
+    const clientId = 'da8378f7ca289d2';
+    const response = await fetch('https://api.imgur.com/3/image', {
+      method: 'POST', headers: {
+        Authorization: 'Client-ID ' + clientId,
+      }, body: formData
+    });
+
+    if (!response.ok) {
+      throw new Error('Server error: ' + response.status);
+    }
+    const data = await response.json();
+    if (data.success) {
+      const link = data.data.link;
+      console.log('Image uploaded successfully. Image link: ' + link);
+      const uploadedLink = document.getElementById("uploadedLink");
+      document.getElementById("uploadToImgur").style.display = 'none'
+      uploadedLink.href = link;
+      uploadedLink.innerHTML = `${link}`
+      saveImageLink(link)
+    } else {
+      console.error('Upload failed: ' + data.data.error);
+    }
+  } catch (error) {
+    console.error('An error occurred:', error);
+  } finally {
+    console.log("Finished");
+  }
+}
+
+async function createWhiteGraph() {
   const canvas = document.getElementById('dotaGraph');
   //Save the graph as an image
   const graphImage = await saveGraphAsImage();
@@ -400,18 +449,7 @@ async function takeScreenshot() {
   newCtx.fillStyle = 'white';
   newCtx.fillRect(0, 0, newCanvas.width, newCanvas.height);
   newCtx.drawImage(graphImage, 0, 0);
-  const dataUrl = newCanvas.toDataURL('image/png');
-  try {
-    const blob = await fetch(dataUrl).then(res => res.blob());
-    const item = new ClipboardItem({'image/png': blob});
-    await navigator.clipboard.write([item]);
-    document.getElementById('messages').style.display = 'block';
-    setTimeout(() => {
-      document.getElementById('messages').style.display = 'none';
-    }, 3000);
-  } catch (error) {
-    console.error('Failed to save screenshot to clipboard:', error);
-  }
+  return newCanvas.toDataURL('image/png');
 }
 
 async function saveGraphAsImage() {
@@ -423,6 +461,15 @@ async function saveGraphAsImage() {
     graphImage.onload = () => resolve(graphImage);
     graphImage.onerror = (error) => reject(error);
   });
+}
+
+function saveImageLink(link) {
+  let uploadedLinks = JSON.parse(localStorage.getItem('uploadedLinks')) || [];
+  if (uploadedLinks.length > 10) {
+    uploadedLinks.shift();
+  }
+  uploadedLinks.push(link)
+  localStorage.setItem('uploadedLinks', JSON.stringify(uploadedLinks));
 }
 
 function clickHandler(evt) {
@@ -438,19 +485,32 @@ function clickHandler(evt) {
   }
 }
 
-function setLatestPlayerId() {
-  const playerIds = JSON.parse(localStorage.getItem('playerIds')) || [];
-  playerIds.forEach((playerId, index) => {
+function loadSavedPlayerIds() {
+  const playerIdsF = JSON.parse(localStorage.getItem('playerIds')) || [];
+  playerIdsF.forEach((playerId, index) => {
     const elementId = 'playerId' + (index + 1);
     const element = document.getElementById(elementId);
     if (element) {
       element.value = playerId;
     }
   });
+
+}
+
+function loadSavedPlayerLink() {
+  const linksContainer = document.getElementById('savedLinkContainer');
+  const links = JSON.parse(localStorage.getItem('uploadedLinks')) || [];
+  links.reverse().forEach((link, index) => {
+    const linkElement = document.createElement('a');
+    linkElement.href = link;
+    linkElement.textContent = `${index + 1}. ${link}`;
+    linkElement.setAttribute('target', '_blank'); // Open links in a new tab
+    linksContainer.appendChild(linkElement);
+    linksContainer.appendChild(document.createElement('br')); // Add line break after each link
+  });
 }
 
 function onChangeNumberOfPlayer() {
-  console.log('yo')
   numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
   if (isNaN(numberOfId)) {
     document.getElementById("numberOfPlayer").value = 1
@@ -499,40 +559,41 @@ function onInPutNumberOfPlayer() {
     currentMmr.style.display = 'none';
     currentMmrText.style.display = 'none';
   }
-  setLatestPlayerId();
+  loadSavedPlayerIds();
 }
 
-document.getElementById('checkbox').addEventListener('change',
-    function (event) {
-      const currentMmr = document.getElementById('currentMmr')
-      const currentMmrText = document.getElementById('currentMmrText')
-      const numberOfPlayerText = document.getElementById('numberOfPlayerText')
-      const numberOfPlayer = document.getElementById('numberOfPlayer')
-      const inputs = document.getElementById('inputs')
-      if (this.checked) {
-        selfCompare = true;
-        currentMmr.style.display = 'none';
-        currentMmrText.style.display = 'none';
-        numberOfPlayerText.textContent = "Number of Graph:"
-        if (inputs.children.length > 1) {
-          for (let i = inputs.children.length - 1; i > 0; i--) {
-            inputs.removeChild(inputs.children[i]);
-          }
-        }
-      } else {
-        selfCompare = false;
-        currentMmr.style.display = 'block';
-        currentMmrText.style.display = 'block';
-        numberOfPlayerText.textContent = "Number of Player:"
-        numberOfId = 1;
-        onInPutNumberOfPlayer()
+document.getElementById('checkbox').addEventListener('change', function () {
+  const currentMmr = document.getElementById('currentMmr')
+  const currentMmrText = document.getElementById('currentMmrText')
+  const numberOfPlayerText = document.getElementById('numberOfPlayerText')
+  const inputs = document.getElementById('inputs')
+  if (this.checked) {
+    selfCompare = true;
+    currentMmr.style.display = 'none';
+    currentMmrText.style.display = 'none';
+    numberOfPlayerText.textContent = "Number of Graph:"
+    if (inputs.children.length > 1) {
+      for (let i = inputs.children.length - 1; i > 0; i--) {
+        inputs.removeChild(inputs.children[i]);
       }
-    });
+    }
+  } else {
+    selfCompare = false;
+    currentMmr.style.display = 'block';
+    currentMmrText.style.display = 'block';
+    numberOfPlayerText.textContent = "Number of Player:"
+    numberOfId = 1;
+    onInPutNumberOfPlayer()
+  }
+});
 
 document.getElementById('screenshotBtn').addEventListener('click',
     takeScreenshot);
-document.getElementById('dotaGraph').addEventListener('click', clickHandler);
-window.addEventListener('load', setLatestPlayerId);
+document.getElementById('uploadToImgur').addEventListener('click',
+    uploadToImgur);
+window.addEventListener('load', loadSavedPlayerIds);
+window.addEventListener('load', loadSavedPlayerLink);
+
 
 
 

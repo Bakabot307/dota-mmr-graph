@@ -33,13 +33,17 @@
   <canvas height="600px" id="dotaGraph" width="1200px"></canvas>
   <div id="showAfterCreated">
     <button id="screenshotBtn">Take Screenshot</button>
+      <button id="uploadToImgur">Get Link</button>
+      <a id="uploadedLink" target="_blank"></a>
     <div id="profileBtnContainer">
     </div>
     <p id="instructions" style="font-size: 14px; color: #666; display: none">* Click on the tick labels to view matches on Dotabuff<br>
     </p>
   </div>
+
   <label id="messages">Screenshot saved to clipboard!</label>
 </div>
+<div id="savedLinkContainer">Saved previous links: <br></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script src="script.js"></script>
