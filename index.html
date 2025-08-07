@@ -7,44 +7,53 @@
   <link href="styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<div class="input-container" style="text-align: center;">
-  <label for="checkbox">Self-Comparing? </label>
-  <input type="checkbox" id="checkbox">
-  <label for="numberOfPlayer" id="numberOfPlayerText">Number of Players:</label>
-  <input class="inputField" id="numberOfPlayer" max="5" min="1" onchange="onChangeNumberOfPlayer()" oninput="onInPutNumberOfPlayer()" type="number" value="1">
-  <label for="playerId1">Player ID:</label>
-  <div id="inputs">
-    <input class="inputField" id="playerId1" placeholder="Enter Player 1 ID" type="number">
+<div class="controls">
+  <div class="form-row">
+    <label for="checkbox">Self-Comparing?</label>
+    <input type="checkbox" id="checkbox">
   </div>
-  <label for="currentMmr" id="currentMmrText">Current MMR:</label>
-  <input class="inputField" id="currentMmr" placeholder="Enter current MMR" type="number">
-  <label for="numberOfMatch">Matches:</label>
-  <input class="inputField" id="numberOfMatch" placeholder="Enter number of match" type="number" value="100">
-  <select id="gameType" class="inputField" style="display: none">
-    <option value="7">Ranked</option>
-    <option value="1">All Matches</option>
-  </select>
-  <button id="createGraphBtn" onclick="createGraph()">Create Graph</button>
-  <a href="https://github.com/Bakabot307/dota-mmr-graph" target="_blank">Suggestion?</a>
+  <div class="form-row">
+    <label for="numberOfPlayer" id="numberOfPlayerText">Number of Players:</label>
+    <input class="inputField" id="numberOfPlayer" max="5" min="1" type="number" value="1">
+  </div>
+  <div class="form-row" id="playerInputs">
+    <label for="playerId1">Player ID:</label>
+    <div id="inputs">
+      <input class="inputField" id="playerId1" placeholder="Enter Player 1 ID" type="number">
+    </div>
+  </div>
+  <div class="form-row" id="currentMmrWrapper">
+    <label for="currentMmr" id="currentMmrText">Current MMR:</label>
+    <input class="inputField" id="currentMmr" placeholder="Enter current MMR" type="number">
+  </div>
+  <div class="form-row">
+    <label for="numberOfMatch">Matches:</label>
+    <input class="inputField" id="numberOfMatch" placeholder="Enter number of match" type="number" value="100">
+  </div>
+  <div class="form-row">
+    <select id="gameType" class="inputField" style="display: none">
+      <option value="7">Ranked</option>
+      <option value="1">All Matches</option>
+    </select>
+  </div>
+  <div class="form-row">
+    <button id="createGraphBtn" class="btn btn-primary">Create Graph</button>
+    <a href="https://github.com/Bakabot307/dota-mmr-graph" target="_blank">Suggestion?</a>
+  </div>
 </div>
 
-<div class="canvas-container">
-  <label id="errors" style="color: red"></label>
-  <canvas height="600px" id="dotaGraph" width="1200px"></canvas>
-  <div id="showAfterCreated">
-    <button id="screenshotBtn">Take Screenshot</button>
-      <button id="uploadToImgur">Get Link</button>
-      <button id="copyLink" style="display: none">Copy</button>
-      <a id="uploadedLink" target="_blank"></a>
-    <div id="profileBtnContainer">
+  <div class="canvas-container">
+    <label id="errors" style="color: red"></label>
+    <canvas height="600px" id="dotaGraph" width="1200px"></canvas>
+    <div id="showAfterCreated">
+      <button id="screenshotBtn" class="btn btn-secondary">Take Screenshot</button>
+      <div id="profileBtnContainer"></div>
+      <p id="instructions" style="font-size: 14px; color: #666; display: none">* Click on the tick labels to view matches on Dotabuff<br>
+      </p>
     </div>
-    <p id="instructions" style="font-size: 14px; color: #666; display: none">* Click on the tick labels to view matches on Dotabuff<br>
-    </p>
-  </div>
 
   <label id="messages">Screenshot saved to clipboard!</label>
 </div>
-<div id="savedLinkContainer">Saved previous links: <br></div>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
 <script src="script.js"></script>
