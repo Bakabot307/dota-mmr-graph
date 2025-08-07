@@ -93,10 +93,6 @@ let myChart;
 
 async function createGraph() {
   const playerIds = [];
-  el("uploadedLink").innerHTML = '';
-  el("uploadedLink").href = '';
-  el("uploadToImgur").style.display = 'inline-block'
-  el("copyLink").style.display = 'none'
   const currentMmr = parseInt(el('currentMmr').value);
   const numberOfMatch = parseInt(el('numberOfMatch').value);
   for (let i = 1; i <= (selfCompare ? 1 : numberOfId); i++) {
@@ -397,45 +393,6 @@ async function takeScreenshot() {
   }
 }
 
-async function uploadToImgur() {
-  try {
-    const formData = new FormData();
-    const blob = await fetch(await createWhiteGraph()).then(res => res.blob());
-    formData.append('image', blob);
-    const clientId = 'da8378f7ca289d2';
-    const response = await fetch('https://api.imgur.com/3/image', {
-      method: 'POST', headers: {
-        Authorization: 'Client-ID ' + clientId,
-      }, body: formData
-    });
-
-    if (!response.ok) {
-      throw new Error('Server error: ' + response.status);
-    }
-    const data = await response.json();
-    if (data.success) {
-      const link = data.data.link;
-      console.log('Image uploaded successfully. Image link: ' + link);
-      const uploadedLink = el("uploadedLink");
-      const copyButton = el('copyLink')
-      copyButton.style.display='inline-block';
-      copyButton.addEventListener('click', function() {
-        copyToClipboard(link);
-      });
-      uploadedLink.href = link;
-      uploadedLink.innerHTML = `${link}`
-      saveImageLink(link)
-
-    } else {
-      console.error('Upload failed: ' + data.data.error);
-    }
-  } catch (error) {
-    console.error('An error occurred:', error);
-  } finally {
-    el("uploadToImgur").style.display='none';
-  }
-}
-
 async function createWhiteGraph() {
   const canvas = el('dotaGraph');
   //Save the graph as an image
@@ -464,15 +421,6 @@ async function saveGraphAsImage() {
   });
 }
 
-function saveImageLink(link) {
-  let uploadedLinks = JSON.parse(localStorage.getItem('uploadedLinks')) || [];
-  if (uploadedLinks.length > 10) {
-    uploadedLinks.shift();
-  }
-  uploadedLinks.push(link)
-  localStorage.setItem('uploadedLinks', JSON.stringify(uploadedLinks));
-}
-
 function clickHandler(evt) {
   if (numberOfId === 1 && myChart !== undefined && !selfCompare) {
     const points = myChart.getElementsAtEventForMode(evt, 'nearest',
@@ -498,38 +446,6 @@ function loadSavedPlayerIds() {
 
 }
 
-function loadSavedPlayerLink() {
-  const linksContainer = el('savedLinkContainer');
-  const links = JSON.parse(localStorage.getItem('uploadedLinks')) || [];
-  links.reverse().forEach((link, index) => {
-    const linkElement = document.createElement('a');
-    const copyButton = document.createElement('button');
-    copyButton.textContent = 'Copy';
-    copyButton.style.marginLeft='5px';
-    copyButton.style.marginTop='5px';
-    copyButton.addEventListener('click', function() {
-      copyToClipboard(link);
-    });
-    linkElement.href = link;
-    linkElement.textContent = `${index + 1}. ${link}`;
-    linkElement.setAttribute('target', '_blank');
-    linkElement.style.marginTop='5px';
-
-    linksContainer.appendChild(linkElement);
-    linksContainer.appendChild(copyButton)
-    linksContainer.appendChild(document.createElement('br'));
-  });
-}
-
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text)
-  .then(() => {
-    alert(`Link copied to clipboard: ${text}`);
-  })
-  .catch(err => {
-    console.error('Failed to copy link: ', err);
-  });
-}
 function onChangeNumberOfPlayer() {
   numberOfId = parseInt(el("numberOfPlayer").value);
   if (isNaN(numberOfId)) {
@@ -609,13 +525,10 @@ el('checkbox').addEventListener('change', () => {
 
 el('screenshotBtn').addEventListener('click',
     takeScreenshot);
-el('uploadToImgur').addEventListener('click',
-    uploadToImgur);
 el('createGraphBtn').addEventListener('click', createGraph);
 el('numberOfPlayer').addEventListener('change', onChangeNumberOfPlayer);
 el('numberOfPlayer').addEventListener('input', onInPutNumberOfPlayer);
 window.addEventListener('load', loadSavedPlayerIds);
-window.addEventListener('load', loadSavedPlayerLink);
 
 
 

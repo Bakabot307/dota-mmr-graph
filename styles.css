@@ -5,13 +5,13 @@ body {
 }
 
 .controls {
-  max-width: 600px;
-  margin: 20px auto;
+
   padding: 20px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
+
   flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
@@ -19,6 +19,7 @@ body {
 
 .form-row {
   display: flex;
+
   flex: 1 1 100%;
   justify-content: center;
   align-items: center;
@@ -109,6 +110,10 @@ body {
 
   #gameType {
     width: auto; /* Reset width for select dropdown */
+  }
+
+  .form-row {
+    flex: 1 1 100%;
   }
 }
 
