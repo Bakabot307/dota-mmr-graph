@@ -5,25 +5,25 @@ body {
 }
 
 .controls {
-  width: 100%;
-  margin: 20px;
+
   padding: 20px;
   background: #fff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
   display: flex;
-  flex-wrap: nowrap;
+
+  flex-wrap: wrap;
   gap: 10px;
   justify-content: center;
-  align-items: center;
 }
 
 .form-row {
   display: flex;
+
+  flex: 1 1 100%;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  flex: 0 0 auto;
 }
 
 .btn {
