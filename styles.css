@@ -1,27 +1,50 @@
-#createGraphBtn {
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+}
+
+.controls {
+  width: 100%;
+  margin: 20px;
+  padding: 20px;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+.form-row {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  flex: 0 0 auto;
+}
+
+.btn {
   padding: 10px 20px;
-  background-color: #4CAF50;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   font-size: 16px;
 }
 
-#screenshotBtn,#screenshotBtn,#uploadToImgur,#copyLink {
-  padding: 10px 20px;
+.btn-primary {
+  background-color: #4caf50;
+}
+
+.btn-secondary {
   background-color: orangered;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 16px;
-  align-self: center;
-  display:inline-block
 }
 
-#createGraphBtn:hover, #screenshotBtn:hover {
-  background-color: #45a049;
+.btn:hover {
+  opacity: 0.9;
 }
 
 .inputField, #playerSelection {
@@ -65,12 +88,6 @@
   margin: 0 5px;
 }
 
-.input-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-}
 
 #profileBtnContainer {
   margin-top: 10px;
@@ -80,11 +97,11 @@
   margin-top: 10px;
 }
 @media screen and (max-width: 600px) {
-  .input-container {
-    width: 90%; /* Adjust the width as needed */
-    margin: auto; /* Center horizontally */
-    flex-direction: column; /* Stack elements vertically */
-    text-align: center; /* Center text */
+  .controls {
+    width: 90%;
+    margin: auto;
+    flex-direction: column;
+    text-align: center;
   }
 
   .inputField, #playerSelection {
@@ -93,6 +110,10 @@
 
   #gameType {
     width: auto; /* Reset width for select dropdown */
+  }
+
+  .form-row {
+    flex: 1 1 100%;
   }
 }
 

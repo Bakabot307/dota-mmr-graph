@@ -1,28 +1,23 @@
 let numberOfId = 1;
 let selfCompare = false;
 
-async function fetchData(playerIdsF, numberOfMatch) {
-  let userNumberOfMatch = numberOfMatch;
+const el = (id) => document.getElementById(id);
 
-  if (selfCompare) {
-    userNumberOfMatch = numberOfMatch * numberOfId;
-  }
-
-  let gameType = '&lobby_type=7';
+const getGameTypeParam = () => {
   if (numberOfId > 1) {
-    const selected = document.getElementById("gameType");
-    if (selected.value === "7") {
-      gameType = 'lobby_type=7';
-    }
-    if (selected.value === "1") {
-      gameType = ''
-    }
+    return el('gameType').value === '7' ? 'lobby_type=7' : '';
   }
+  return 'lobby_type=7';
+};
+
+async function fetchData(playerIdsF, numberOfMatch) {
+  let userNumberOfMatch = selfCompare ? numberOfMatch * numberOfId : numberOfMatch;
+  const gameType = getGameTypeParam();
   try {
     const allData = [];
     for (const playerId of playerIdsF) {
-      const response = await fetch(
-          `https://api.opendota.com/api/players/${playerId}/matches?limit=${userNumberOfMatch}&${gameType}`);
+      const url = `https://api.opendota.com/api/players/${playerId}/matches?limit=${userNumberOfMatch}${gameType ? `&${gameType}` : ''}`;
+      const response = await fetch(url);
       if (!response.ok) {
         throw new Error(
             `Failed to fetch data for player ${playerId}! Try again later!`);
@@ -66,12 +61,12 @@ async function fetchData(playerIdsF, numberOfMatch) {
       }
     }
 
-    document.getElementById('errors').textContent = "";
+    el('errors').textContent = "";
     localStorage.setItem("playerIds", JSON.stringify(playerIdsF));
     return allData;
   } catch (error) {
     console.error('Error fetching data:', error.message);
-    document.getElementById('errors').textContent = error.message;
+    el('errors').textContent = error.message;
     return null;
   }
 }
@@ -98,34 +93,29 @@ let myChart;
 
 async function createGraph() {
   const playerIds = [];
-  document.getElementById("uploadedLink").innerHTML = '';
-  document.getElementById("uploadedLink").href = '';
-  document.getElementById("uploadToImgur").style.display = 'inline-block'
-  document.getElementById("copyLink").style.display = 'none'
-  const currentMmr = parseInt(document.getElementById('currentMmr').value);
-  const numberOfMatch = parseInt(
-      document.getElementById('numberOfMatch').value);
+  const currentMmr = parseInt(el('currentMmr').value);
+  const numberOfMatch = parseInt(el('numberOfMatch').value);
   for (let i = 1; i <= (selfCompare ? 1 : numberOfId); i++) {
-    const playerId = parseInt(document.getElementById(`playerId${i}`).value);
+    const playerId = parseInt(el(`playerId${i}`).value);
     if (!isNaN(playerId) && playerId > 0) {
       playerIds.push(playerId);
     } else {
-      document.getElementById('errors').textContent = `Player ${i} ID?`;
+      el('errors').textContent = `Player ${i} ID?`;
       return;
     }
   }
   if (isNaN(currentMmr) && numberOfId === 1 && !selfCompare || currentMmr <= 0
       && numberOfId === 1 && !selfCompare) {
-    document.getElementById('errors').textContent = 'Mmr > 0';
+    el('errors').textContent = 'Mmr > 0';
     return;
   }
 
   if (isNaN(numberOfMatch) || numberOfMatch <= 1) {
-    document.getElementById('errors').textContent = 'Number of match > 1';
+    el('errors').textContent = 'Number of match > 1';
     return;
   }
 
-  const canvas = document.getElementById('dotaGraph');
+  const canvas = el('dotaGraph');
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
@@ -329,7 +319,7 @@ async function createGraph() {
 }
 
 function somethingFun() {
-  const container = document.getElementById('zoomContainer');
+  const container = el('zoomContainer');
   if (!container || container.children.length === 0) {
     const container = document.createElement('div');
     container.id = 'zoomContainer';
@@ -365,7 +355,7 @@ function somethingFun() {
 }
 
 function onCompleteShowDotaBuff(playerIdsF) {
-  const container = document.getElementById('profileBtnContainer');
+  const container = el('profileBtnContainer');
   container.innerHTML='';
   if (playerIdsF.length === 1 && playerIdsF[0] === 56939869) {
     somethingFun();
@@ -382,11 +372,11 @@ function onCompleteShowDotaBuff(playerIdsF) {
     container.appendChild(dotabuffIcon);
   }
   if (!selfCompare && numberOfId === 1) {
-    document.getElementById('instructions').style.display = 'block';
+    el('instructions').style.display = 'block';
   } else {
-    document.getElementById('instructions').style.display = 'none';
+    el('instructions').style.display = 'none';
   }
-  document.getElementById('showAfterCreated').style.display = 'block';
+  el('showAfterCreated').style.display = 'block';
 }
 
 async function takeScreenshot() {
@@ -394,56 +384,17 @@ async function takeScreenshot() {
     const blob = await fetch(await createWhiteGraph()).then(res => res.blob());
     const item = new ClipboardItem({'image/png': blob});
     await navigator.clipboard.write([item]);
-    document.getElementById('messages').style.display = 'block';
+    el('messages').style.display = 'block';
     setTimeout(() => {
-      document.getElementById('messages').style.display = 'none';
+      el('messages').style.display = 'none';
     }, 3000);
   } catch (error) {
     console.error('Failed to save screenshot to clipboard:', error);
   }
 }
 
-async function uploadToImgur() {
-  try {
-    const formData = new FormData();
-    const blob = await fetch(await createWhiteGraph()).then(res => res.blob());
-    formData.append('image', blob);
-    const clientId = 'da8378f7ca289d2';
-    const response = await fetch('https://api.imgur.com/3/image', {
-      method: 'POST', headers: {
-        Authorization: 'Client-ID ' + clientId,
-      }, body: formData
-    });
-
-    if (!response.ok) {
-      throw new Error('Server error: ' + response.status);
-    }
-    const data = await response.json();
-    if (data.success) {
-      const link = data.data.link;
-      console.log('Image uploaded successfully. Image link: ' + link);
-      const uploadedLink = document.getElementById("uploadedLink");
-      const copyButton = document.getElementById('copyLink')
-      copyButton.style.display='inline-block';
-      copyButton.addEventListener('click', function() {
-        copyToClipboard(link);
-      });
-      uploadedLink.href = link;
-      uploadedLink.innerHTML = `${link}`
-      saveImageLink(link)
-
-    } else {
-      console.error('Upload failed: ' + data.data.error);
-    }
-  } catch (error) {
-    console.error('An error occurred:', error);
-  } finally {
-    document.getElementById("uploadToImgur").style.display='none';
-  }
-}
-
 async function createWhiteGraph() {
-  const canvas = document.getElementById('dotaGraph');
+  const canvas = el('dotaGraph');
   //Save the graph as an image
   const graphImage = await saveGraphAsImage();
   //Create a new canvas with a white background
@@ -460,7 +411,7 @@ async function createWhiteGraph() {
 }
 
 async function saveGraphAsImage() {
-  const graphCanvas = document.getElementById('dotaGraph');
+  const graphCanvas = el('dotaGraph');
   const graphDataUrl = graphCanvas.toDataURL('image/png');
   const graphImage = new Image();
   graphImage.src = graphDataUrl;
@@ -468,15 +419,6 @@ async function saveGraphAsImage() {
     graphImage.onload = () => resolve(graphImage);
     graphImage.onerror = (error) => reject(error);
   });
-}
-
-function saveImageLink(link) {
-  let uploadedLinks = JSON.parse(localStorage.getItem('uploadedLinks')) || [];
-  if (uploadedLinks.length > 10) {
-    uploadedLinks.shift();
-  }
-  uploadedLinks.push(link)
-  localStorage.setItem('uploadedLinks', JSON.stringify(uploadedLinks));
 }
 
 function clickHandler(evt) {
@@ -496,7 +438,7 @@ function loadSavedPlayerIds() {
   const playerIdsF = JSON.parse(localStorage.getItem('playerIds')) || [];
   playerIdsF.forEach((playerId, index) => {
     const elementId = 'playerId' + (index + 1);
-    const element = document.getElementById(elementId);
+    const element = el(elementId);
     if (element) {
       element.value = playerId;
     }
@@ -504,62 +446,30 @@ function loadSavedPlayerIds() {
 
 }
 
-function loadSavedPlayerLink() {
-  const linksContainer = document.getElementById('savedLinkContainer');
-  const links = JSON.parse(localStorage.getItem('uploadedLinks')) || [];
-  links.reverse().forEach((link, index) => {
-    const linkElement = document.createElement('a');
-    const copyButton = document.createElement('button');
-    copyButton.textContent = 'Copy';
-    copyButton.style.marginLeft='5px';
-    copyButton.style.marginTop='5px';
-    copyButton.addEventListener('click', function() {
-      copyToClipboard(link);
-    });
-    linkElement.href = link;
-    linkElement.textContent = `${index + 1}. ${link}`;
-    linkElement.setAttribute('target', '_blank');
-    linkElement.style.marginTop='5px';
-
-    linksContainer.appendChild(linkElement);
-    linksContainer.appendChild(copyButton)
-    linksContainer.appendChild(document.createElement('br'));
-  });
-}
-
-function copyToClipboard(text) {
-  navigator.clipboard.writeText(text)
-  .then(() => {
-    alert(`Link copied to clipboard: ${text}`);
-  })
-  .catch(err => {
-    console.error('Failed to copy link: ', err);
-  });
-}
 function onChangeNumberOfPlayer() {
-  numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
+  numberOfId = parseInt(el("numberOfPlayer").value);
   if (isNaN(numberOfId)) {
-    document.getElementById("numberOfPlayer").value = 1
+    el("numberOfPlayer").value = 1
     onInPutNumberOfPlayer();
   }
 
 }
 
 function onInPutNumberOfPlayer() {
-  numberOfId = parseInt(document.getElementById("numberOfPlayer").value);
+  numberOfId = parseInt(el("numberOfPlayer").value);
   if (numberOfId < 1) {
-    document.getElementById("numberOfPlayer").value = 1
+    el("numberOfPlayer").value = 1
     numberOfId = 1
   }
   if (numberOfId > 5) {
-    document.getElementById("numberOfPlayer").value = 5
+    el("numberOfPlayer").value = 5
     numberOfId = 5
   }
 
-  const currentMmr = document.getElementById('currentMmr')
-  const currentMmrText = document.getElementById('currentMmrText')
-  const playerIdContainer = document.getElementById('inputs');
-  const gameType = document.getElementById('gameType');
+  const currentMmr = el('currentMmr')
+  const currentMmrText = el('currentMmrText')
+  const playerIdContainer = el('inputs');
+  const gameType = el('gameType');
   if (selfCompare === false) {
     playerIdContainer.innerHTML = '';
     for (let i = 1; i <= numberOfId; i++) {
@@ -588,16 +498,16 @@ function onInPutNumberOfPlayer() {
   loadSavedPlayerIds();
 }
 
-document.getElementById('checkbox').addEventListener('change', function () {
-  const currentMmr = document.getElementById('currentMmr')
-  const currentMmrText = document.getElementById('currentMmrText')
-  const numberOfPlayerText = document.getElementById('numberOfPlayerText')
-  const inputs = document.getElementById('inputs')
-  if (this.checked) {
+el('checkbox').addEventListener('change', () => {
+  const currentMmr = el('currentMmr');
+  const currentMmrText = el('currentMmrText');
+  const numberOfPlayerText = el('numberOfPlayerText');
+  const inputs = el('inputs');
+  if (el('checkbox').checked) {
     selfCompare = true;
     currentMmr.style.display = 'none';
     currentMmrText.style.display = 'none';
-    numberOfPlayerText.textContent = "Number of Graph:"
+    numberOfPlayerText.textContent = "Number of Graph:";
     if (inputs.children.length > 1) {
       for (let i = inputs.children.length - 1; i > 0; i--) {
         inputs.removeChild(inputs.children[i]);
@@ -607,18 +517,18 @@ document.getElementById('checkbox').addEventListener('change', function () {
     selfCompare = false;
     currentMmr.style.display = 'block';
     currentMmrText.style.display = 'block';
-    numberOfPlayerText.textContent = "Number of Player:"
+    numberOfPlayerText.textContent = "Number of Player:";
     numberOfId = 1;
-    onInPutNumberOfPlayer()
+    onInPutNumberOfPlayer();
   }
 });
 
-document.getElementById('screenshotBtn').addEventListener('click',
+el('screenshotBtn').addEventListener('click',
     takeScreenshot);
-document.getElementById('uploadToImgur').addEventListener('click',
-    uploadToImgur);
+el('createGraphBtn').addEventListener('click', createGraph);
+el('numberOfPlayer').addEventListener('change', onChangeNumberOfPlayer);
+el('numberOfPlayer').addEventListener('input', onInPutNumberOfPlayer);
 window.addEventListener('load', loadSavedPlayerIds);
-window.addEventListener('load', loadSavedPlayerLink);
 
 
 
