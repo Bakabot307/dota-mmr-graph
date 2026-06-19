@@ -394,17 +394,18 @@ body::before {
 
 .results-header {
   display: flex;
-  gap: 16px;
+  gap: 12px;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-start;
 }
 
 .profile-buttons {
   display: flex;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
-  justify-content: center;
+  justify-content: flex-start;
+  margin-left: 6px;
 }
 
 .dotabuff-icon {
