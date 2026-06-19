@@ -4,31 +4,23 @@
   <meta charset="UTF-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
   <title>Dota 2 MMR Graph Analyzer</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
   <div class="wrapper">
-    <!-- Header -->
-    <header class="header">
-      <div class="header-content">
-        <h1 class="title">📊 Dota 2 MMR Analyzer</h1>
-        <p class="subtitle">Track your MMR progression and compare with other players</p>
-      </div>
-    </header>
-
     <!-- Main Container -->
     <div class="container">
       <!-- Control Panel -->
-      <section class="control-panel">
+      <aside class="control-panel">
         <h2 class="section-title">⚙️ Configuration</h2>
         
         <div class="form-grid">
           <!-- Self Compare Toggle -->
           <div class="form-group">
             <label class="label-with-icon">
-              <input type="checkbox" id="checkbox" class="checkbox-input">
               <span>Self-Comparing Mode</span>
+              <input type="checkbox" id="checkbox" class="checkbox-input">
             </label>
             <p class="form-help">Compare yourself across different time periods</p>
           </div>
@@ -44,9 +36,9 @@
           <div class="form-group form-group-full" id="playerInputs">
             <label class="form-label">🎮 Player Steam IDs:</label>
             <div id="inputs" class="player-inputs-container">
-              <input class="input-field" id="playerId1" placeholder="Enter Player 1 Steam ID" type="number">
+              <input class="input-field" id="playerId1" placeholder="Enter Player 1 ID" type="number">
             </div>
-            <p class="form-help">Enter the Steam ID of each player (find it on Dotabuff)</p>
+            <p class="form-help">Enter Steam ID (find it on Dotabuff)</p>
           </div>
 
           <!-- Current MMR -->
@@ -60,15 +52,17 @@
           <div class="form-group">
             <label for="numberOfMatch" class="form-label">📈 Number of Matches:</label>
             <input class="input-field" id="numberOfMatch" placeholder="e.g., 100" type="number" value="100">
-            <p class="form-help">Number of recent matches to analyze</p>
+            <p class="form-help">Number of matches to analyze</p>
           </div>
 
           <!-- Game Type -->
-          <div class="form-group" style="display: none;">
+          <div class="form-group" id="gameTypeWrapper" style="display: none;">
+            <label for="gameType" class="form-label">🎮 Game Type:</label>
             <select id="gameType" class="input-field">
               <option value="7">Ranked</option>
               <option value="1">All Matches</option>
             </select>
+            <p class="form-help">Select game matchmaking type</p>
           </div>
         </div>
 
@@ -86,25 +80,28 @@
             <span>💡 Suggestions</span>
           </a>
         </div>
-      </section>
+      </aside>
 
-      <!-- Graph Section -->
-      <section class="graph-section">
-        <h2 class="section-title">📉 MMR Progress Chart</h2>
-        <div class="canvas-container">
-          <canvas id="dotaGraph"></canvas>
-        </div>
-      </section>
+      <!-- Dashboard Main -->
+      <div class="dashboard-main">
+        <!-- Graph Section -->
+        <section class="graph-section">
+          <h2 class="section-title">📉 MMR Progress Chart</h2>
+          <div class="canvas-container">
+            <canvas id="dotaGraph"></canvas>
+          </div>
+        </section>
 
-      <!-- Results Section -->
-      <section id="showAfterCreated" class="results-section">
-        <div class="results-header">
-          <button id="screenshotBtn" class="btn btn-action">📸 Take Screenshot</button>
-          <div id="profileBtnContainer" class="profile-buttons"></div>
-        </div>
-        <p id="instructions" class="instructions-text">💡 Click on the match labels to view detailed stats on Dotabuff</p>
-        <label id="messages" class="success-message">✅ Screenshot saved to clipboard!</label>
-      </section>
+        <!-- Results Section -->
+        <section id="showAfterCreated" class="results-section">
+          <div class="results-header">
+            <button id="screenshotBtn" class="btn btn-action">📸 Take Screenshot</button>
+            <div id="profileBtnContainer" class="profile-buttons"></div>
+          </div>
+          <p id="instructions" class="instructions-text">💡 Click on the match labels to view detailed stats on Dotabuff</p>
+          <label id="messages" class="success-message">✅ Screenshot saved to clipboard!</label>
+        </section>
+      </div>
     </div>
 
     <!-- Footer -->

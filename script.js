@@ -1,6 +1,12 @@
 let numberOfId = 1;
 let selfCompare = false;
 
+// Global cache for rendering high-res screenshot without refetching
+let lastFetchedDatas = null;
+let lastPlayerIds = null;
+let lastCurrentMmr = 0;
+let lastNumberOfMatch = 0;
+
 const el = (id) => document.getElementById(id);
 
 const getGameTypeParam = () => {
@@ -9,6 +15,20 @@ const getGameTypeParam = () => {
   }
   return 'lobby_type=7';
 };
+
+// Curated Dota 2 inspired line colors
+const themeColors = [
+  '#e22b37', // Crimson Red
+  '#f08b18', // Ember Gold
+  '#3498db', // Dragon Blue
+  '#3bca5c', // Radiant Green
+  '#9b59b6', // Abyssal Violet
+  '#1abc9c', // Storm Cyan
+  '#e67e22', // Orange
+  '#f1c40f'  // Gold
+];
+
+const getThemeColor = (index) => themeColors[index % themeColors.length];
 
 async function fetchData(playerIdsF, numberOfMatch) {
   let userNumberOfMatch = selfCompare ? numberOfMatch * numberOfId : numberOfMatch;
@@ -25,9 +45,9 @@ async function fetchData(playerIdsF, numberOfMatch) {
       const data = await response.json();
       if (data.length === 0) {
         throw new Error(
-            `ID ${playerId} does not exist or not public matches data!`);
+            `ID ${playerId} does not exist or has no public match data!`);
       } else {
-        numberOfMatch = data.length
+        numberOfMatch = data.length;
         if (selfCompare) {
           numberOfMatch = Math.floor(data.length / numberOfId);
         }
@@ -47,7 +67,7 @@ async function fetchData(playerIdsF, numberOfMatch) {
         if (allData.length === 0) {
           allData.push({playerId, data});
         } else if (allData[0] < data.length) {
-          allData.push({playerId, data})
+          allData.push({playerId, data});
         } else {
           allData.unshift({playerId, data});
         }
@@ -90,39 +110,17 @@ function formatDate(date) {
 
 let myChart;
 
+// Dynamic configuration generator supporting screen preview and high-res screenshot styles
+function buildChartConfig(datas, currentMmr, numberOfMatch, isHighRes = false) {
+  const scale = isHighRes ? 2.5 : 1;
+  const fontTitleSize = Math.round(12 * scale);
+  const fontTickSize = Math.round(11 * scale);
+  const fontLabelSize = Math.round(11 * scale);
+  const lineWidth = isHighRes ? 6 : 3;
+  const pointRadius = numberOfMatch < 251 ? (isHighRes ? 8 : 4) : 0;
+  const pointHoverRadius = isHighRes ? 12 : 6;
+  const datalabelPadding = isHighRes ? 8 : 4;
 
-async function createGraph() {
-  const playerIds = [];
-  const currentMmr = parseInt(el('currentMmr').value);
-  const numberOfMatch = parseInt(el('numberOfMatch').value);
-  for (let i = 1; i <= (selfCompare ? 1 : numberOfId); i++) {
-    const playerId = parseInt(el(`playerId${i}`).value);
-    if (!isNaN(playerId) && playerId > 0) {
-      playerIds.push(playerId);
-    } else {
-      el('errors').textContent = `Player ${i} ID?`;
-      return;
-    }
-  }
-  if (isNaN(currentMmr) && numberOfId === 1 && !selfCompare || currentMmr <= 0
-      && numberOfId === 1 && !selfCompare) {
-    el('errors').textContent = 'Mmr > 0';
-    return;
-  }
-
-  if (isNaN(numberOfMatch) || numberOfMatch <= 1) {
-    el('errors').textContent = 'Number of match > 1';
-    return;
-  }
-
-  const canvas = el('dotaGraph');
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-  const datas = await fetchData(playerIds, numberOfMatch, currentMmr);
-  if (myChart) {
-    myChart.destroy(); // Destroy the previous chart if it exists
-  }
   if (numberOfId <= 1 && !selfCompare) {
     const data = datas[0].data;
     let mmr = currentMmr;
@@ -131,7 +129,7 @@ async function createGraph() {
     for (let i = 0; i < data.length; i++) {
       if (i === 0) {
         mmrData.push(mmr);
-        matchIdData.push(data[0].match_id)
+        matchIdData.push(data[0].match_id);
       } else {
         const playerSlot = data[i - 1].player_slot;
         const isRadiant = playerSlot < 128;
@@ -142,7 +140,7 @@ async function createGraph() {
         } else {
           mmr += 25;
         }
-        matchIdData.unshift(data[i].match_id)
+        matchIdData.unshift(data[i].match_id);
         mmrData.unshift(mmr);
       }
     }
@@ -152,76 +150,135 @@ async function createGraph() {
     let highestMMRIndex = mmrData.length - 1
         - mmrData.slice().reverse().indexOf(Math.max(...mmrData));
 
-    myChart = new Chart(ctx, {
-      type: 'line', data: {
-        labels: matchIdData, datasets: [{
-          label: `MMR`,
+    return {
+      type: 'line',
+      data: {
+        labels: matchIdData,
+        datasets: [{
+          label: `MMR Progression`,
           data: mmrData,
-          borderColor: 'rgb(75, 192, 192)',
-          fill: false,
-          pointRadius: numberOfMatch < 251 ? 4 : 0,
+          borderColor: '#e22b37',
+          borderWidth: lineWidth,
+          fill: true,
+          tension: 0.15,
+          backgroundColor: (context) => {
+            const chart = context.chart;
+            const {ctx: chartCtx, chartArea} = chart;
+            if (!chartArea) return null;
+            const gradient = chartCtx.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            gradient.addColorStop(0, 'rgba(226, 43, 55, 0.22)');
+            gradient.addColorStop(1, 'rgba(226, 43, 55, 0.0)');
+            return gradient;
+          },
+          pointRadius: pointRadius,
+          pointBackgroundColor: '#e22b37',
+          pointBorderColor: '#ffffff',
+          pointHoverRadius: pointHoverRadius,
           datalabels: {
+            color: '#ffffff',
+            font: { family: 'Outfit', weight: 'bold', size: fontLabelSize },
+            backgroundColor: 'rgba(18, 16, 23, 0.9)',
+            borderColor: '#292435',
+            borderWidth: isHighRes ? 2 : 1,
+            borderRadius: isHighRes ? 6 : 4,
+            padding: datalabelPadding,
             align: function (context) {
-              if (context.dataIndex === lowestMMRIndex) {
-                return 'bottom';
-              } else if (context.dataIndex === highestMMRIndex) {
-                return 'top';
-              } else if (context.dataIndex === 0) {
-                return 'left';
-              } else {
-                return null;
-              }
-            }, display: function (context) {
-              return context.dataIndex === lowestMMRIndex || context.dataIndex
-              === highestMMRIndex || context.dataIndex === numberOfMatch - 1
+              if (context.dataIndex === lowestMMRIndex) return 'bottom';
+              if (context.dataIndex === highestMMRIndex) return 'top';
+              if (context.dataIndex === 0) return 'left';
+              return null;
+            },
+            display: function (context) {
+              return context.dataIndex === lowestMMRIndex || context.dataIndex === highestMMRIndex || context.dataIndex === numberOfMatch - 1
                   ? context.dataIndex : '';
             }
           }
         }]
-      }, plugins: [ChartDataLabels], options: {
-        layout: {
-          padding: {
-            right: 50,
-
+      },
+      plugins: [ChartDataLabels],
+      options: {
+        plugins: {
+          title: {
+            display: isHighRes,
+            text: 'DOTA 2 MMR PROGRESSION REPORT',
+            color: '#ffffff',
+            font: { family: 'Outfit', size: 28, weight: '800' },
+            padding: { bottom: 25, top: 15 }
+          },
+          legend: {
+            labels: {
+              color: '#8b8994',
+              font: { family: 'Outfit', size: isHighRes ? 16 : 13, weight: '600' }
+            }
+          },
+          tooltip: {
+            backgroundColor: '#121017',
+            titleColor: '#fff',
+            bodyColor: '#f5f6f8',
+            borderColor: '#292435',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 4,
+            usePointStyle: true,
+            titleFont: { family: 'Outfit', size: 14, weight: 'bold' },
+            bodyFont: { family: 'Inter', size: 13 }
           }
-        }, responsive: true, maintainAspectRatio: true, scales: {
+        },
+        layout: {
+          padding: isHighRes ? 60 : { right: 50, left: 10, top: 10, bottom: 10 }
+        },
+        responsive: !isHighRes,
+        maintainAspectRatio: false,
+        scales: {
           x: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+              borderColor: 'rgba(255, 255, 255, 0.1)'
+            },
             title: {
               display: true,
-              text: `MMR PROGRESSION OVER ${data.length} MATCHES FOR ${playerIds[0]}`
-            }, ticks: {
-              maxTicksLimit: 12, callback: function (value, index) {
+              text: `MMR progression over the last ${data.length} matches for Player ${playerIds[0]}`,
+              color: '#8b8994',
+              font: { family: 'Outfit', size: fontTitleSize, weight: 'bold' }
+            },
+            ticks: {
+              color: '#8b8994',
+              font: { family: 'Inter', size: fontTickSize },
+              maxTicksLimit: 12,
+              callback: function (value, index) {
                 return index + 1;
               }
             }
-          }, y: {
+          },
+          y: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+              borderColor: 'rgba(255, 255, 255, 0.1)'
+            },
             title: {
-              display: true, text: 'MMR'
-            }, min: Math.min(...mmrData) - 25, max: Math.max(...mmrData) + 25,
-          }
-        }, animation: {
-          onComplete: function (chart) {
-            if (chart.initial) {
-              onCompleteShowDotaBuff(playerIds)
-            }
+              display: true,
+              text: 'MMR',
+              color: '#8b8994',
+              font: { family: 'Outfit', size: fontTitleSize, weight: 'bold' }
+            },
+            ticks: {
+              color: '#8b8994',
+              font: { family: 'Inter', size: fontTickSize }
+            },
+            min: Math.min(...mmrData) - 25,
+            max: Math.max(...mmrData) + 25
           }
         }
       }
-    });
+    };
   } else {
-    function getRandomColor() {
-      const r = Math.floor(Math.random() * 256);
-      const g = Math.floor(Math.random() * 256);
-      const b = Math.floor(Math.random() * 256);
-      return `rgb(${r}, ${g}, ${b})`;
-    }
-
+    // Multiplayer comparisons or self compare periods
     let datasetsArray = [];
     let max = 0, min = 0;
     for (let i = 0; i < numberOfId; i++) {
-      const data = datas[i].data.reverse();
+      const data = datas[i].data.slice().reverse();
       const mmrData = [];
-      mmrData.push(0)
+      mmrData.push(0);
       let mmr = 0;
       for (let j = 1; j < data.length; j++) {
         const playerSlot = data[j].player_slot;
@@ -240,82 +297,182 @@ async function createGraph() {
       const subMin = Math.min(...mmrData);
       const subMax = Math.max(...mmrData);
       if (subMin < min) {
-        min = subMin
+        min = subMin;
       }
       if (subMax > max) {
-        max = subMax
+        max = subMax;
       }
       datasetsArray.push({
         label: `${datas[i].playerId}`,
         data: mmrData,
-        borderColor: getRandomColor(),
+        borderColor: getThemeColor(i),
+        borderWidth: lineWidth - 0.5,
         fill: false,
-        pointRadius: numberOfMatch < 251 ? 2 : 0,
+        tension: 0.15,
+        pointRadius: pointRadius,
+        pointBackgroundColor: getThemeColor(i),
+        pointBorderColor: '#ffffff',
+        pointHoverRadius: pointHoverRadius - 1,
         datalabels: {
+          color: '#ffffff',
+          font: { family: 'Outfit', weight: 'bold', size: fontLabelSize },
+          backgroundColor: 'rgba(18, 16, 23, 0.9)',
+          borderColor: '#292435',
+          borderWidth: isHighRes ? 2 : 1,
+          borderRadius: isHighRes ? 6 : 4,
+          padding: datalabelPadding,
           align: function (context) {
-            if (context.dataIndex === minIndex) {
-              return 'bottom';
-            } else if (context.dataIndex === maxIndex) {
-              return 'top';
-            } else if (context.dataIndex === numberOfMatch - 1) {
-              return 'right';
-            } else {
-              return null;
-            }
-          }, display: function (context) {
-            return context.dataIndex === minIndex || context.dataIndex
-            === maxIndex || context.dataIndex === numberOfMatch - 1
+            if (context.dataIndex === minIndex) return 'bottom';
+            if (context.dataIndex === maxIndex) return 'top';
+            if (context.dataIndex === numberOfMatch - 1) return 'right';
+            return null;
+          },
+          display: function (context) {
+            return context.dataIndex === minIndex || context.dataIndex === maxIndex || context.dataIndex === numberOfMatch - 1
                 ? context.dataIndex : '';
           }
         }
       });
     }
 
-    myChart = new Chart(ctx, {
-      type: 'line', data: {
-        labels: Array.from({length: datasetsArray[0].data.length},
-            (_, index) => index + 1), datasets: datasetsArray,
-      }, plugins: [ChartDataLabels], options: {
+    return {
+      type: 'line',
+      data: {
+        labels: Array.from({length: datasetsArray[0].data.length}, (_, index) => index + 1),
+        datasets: datasetsArray
+      },
+      plugins: [ChartDataLabels],
+      options: {
         plugins: {
+          title: {
+            display: isHighRes,
+            text: 'DOTA 2 MMR COMPARISON REPORT',
+            color: '#ffffff',
+            font: { family: 'Outfit', size: 28, weight: '800' },
+            padding: { bottom: 25, top: 15 }
+          },
+          legend: {
+            labels: {
+              color: '#8b8994',
+              font: { family: 'Outfit', size: isHighRes ? 16 : 13, weight: '600' }
+            }
+          },
           tooltip: {
-            mode: 'index', intersect: false, callbacks: {
+            mode: 'index',
+            intersect: false,
+            backgroundColor: '#121017',
+            titleColor: '#fff',
+            bodyColor: '#f5f6f8',
+            borderColor: '#292435',
+            borderWidth: 1,
+            padding: 12,
+            boxPadding: 4,
+            usePointStyle: true,
+            titleFont: { family: 'Outfit', size: 14, weight: 'bold' },
+            bodyFont: { family: 'Inter', size: 13 },
+            callbacks: {
               title: function () {
-                return 'Score'
+                return 'Match Record Score';
               }
             }
           }
-        }, layout: {
-          padding: {
-            right: 50,
-          }
-        }, responsive: true, maintainAspectRatio: true, scales: {
+        },
+        layout: {
+          padding: isHighRes ? 60 : { right: 50, left: 10, top: 10, bottom: 10 }
+        },
+        responsive: !isHighRes,
+        maintainAspectRatio: false,
+        scales: {
           x: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+              borderColor: 'rgba(255, 255, 255, 0.1)'
+            },
             title: {
               display: true,
               text: selfCompare
-                  ? `SELF COMPARING SCORE ACROSS ${datasetsArray[0].data.length
-                  * numberOfId} MATCHES IN ${numberOfId} PERIODS FOR ${playerIds[0]}`
-                  : `COMPARE BETWEEN ${playerIds.length} PLAYERS OVER THE LAST ${datasetsArray[0].data.length} MATCHES`
-            }, ticks: {
-              maxTicksLimit: 12, callback: function (value, index) {
+                  ? `Self-comparing score across ${datasetsArray[0].data.length * numberOfId} matches in ${numberOfId} periods`
+                  : `Compare between ${playerIds.length} players over the last ${datasetsArray[0].data.length} matches`,
+              color: '#8b8994',
+              font: { family: 'Outfit', size: fontTitleSize, weight: 'bold' }
+            },
+            ticks: {
+              color: '#8b8994',
+              font: { family: 'Inter', size: fontTickSize },
+              maxTicksLimit: 12,
+              callback: function (value, index) {
                 return index + 1;
               }
             }
-          }, y: {
+          },
+          y: {
+            grid: {
+              color: 'rgba(255, 255, 255, 0.05)',
+              borderColor: 'rgba(255, 255, 255, 0.1)'
+            },
             title: {
-              display: true, text: 'GAME RECORDS'
-            }, min: min - 1, max: max + 1
-          }
-        }, animation: {
-          onComplete: function (chart) {
-            if (chart.initial) {
-              onCompleteShowDotaBuff(playerIds)
-            }
+              display: true,
+              text: 'Game Record Score (Net Wins)',
+              color: '#8b8994',
+              font: { family: 'Outfit', size: fontTitleSize, weight: 'bold' }
+            },
+            ticks: {
+              color: '#8b8994',
+              font: { family: 'Inter', size: fontTickSize }
+            },
+            min: min - 1,
+            max: max + 1
           }
         }
       }
-    });
+    };
   }
+}
+
+async function createGraph() {
+  const playerIds = [];
+  const currentMmr = parseInt(el('currentMmr').value);
+  const numberOfMatch = parseInt(el('numberOfMatch').value);
+  for (let i = 1; i <= (selfCompare ? 1 : numberOfId); i++) {
+    const playerId = parseInt(el(`playerId${i}`).value);
+    if (!isNaN(playerId) && playerId > 0) {
+      playerIds.push(playerId);
+    } else {
+      el('errors').textContent = `Player ${i} ID is required!`;
+      return;
+    }
+  }
+  if (isNaN(currentMmr) && numberOfId === 1 && !selfCompare || currentMmr <= 0
+      && numberOfId === 1 && !selfCompare) {
+    el('errors').textContent = 'Starting MMR must be greater than 0';
+    return;
+  }
+
+  if (isNaN(numberOfMatch) || numberOfMatch <= 1) {
+    el('errors').textContent = 'Number of matches must be greater than 1';
+    return;
+  }
+
+  const canvas = el('dotaGraph');
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  const datas = await fetchData(playerIds, numberOfMatch, currentMmr);
+  if (!datas) return;
+
+  // Cache configuration states globally for high-res rendering
+  lastFetchedDatas = datas;
+  lastPlayerIds = playerIds;
+  lastCurrentMmr = currentMmr;
+  lastNumberOfMatch = numberOfMatch;
+
+  if (myChart) {
+    myChart.destroy(); // Destroy the previous chart if it exists
+  }
+
+  // Draw chart in preview mode (responsive)
+  const config = buildChartConfig(datas, currentMmr, numberOfMatch, false);
+  myChart = new Chart(ctx, config);
 }
 
 function somethingFun() {
@@ -351,7 +508,6 @@ function somethingFun() {
     });
     container.appendChild(image);
   }
-
 }
 
 function onCompleteShowDotaBuff(playerIdsF) {
@@ -366,7 +522,6 @@ function onCompleteShowDotaBuff(playerIdsF) {
     dotabuffIcon.target = "_blank";
     const img = document.createElement('img');
     img.alt = "Dotabuff Icon";
-    img.classList.add("dotabuff-icon");
     img.src = "https://pbs.twimg.com/profile_images/879332626414358528/eHLyVWo-_400x400.jpg";
     dotabuffIcon.appendChild(img);
     container.appendChild(dotabuffIcon);
@@ -380,45 +535,83 @@ function onCompleteShowDotaBuff(playerIdsF) {
 }
 
 async function takeScreenshot() {
+  if (!lastFetchedDatas) {
+    alert('Please create a graph first!');
+    return;
+  }
+  
+  const btn = el('screenshotBtn');
+  const originalText = btn.textContent;
+  btn.textContent = '⏳ Rendering...';
+  btn.disabled = true;
+
   try {
-    const blob = await fetch(await createWhiteGraph()).then(res => res.blob());
+    // 1. Create a large offscreen canvas for a high resolution (1920x1080) snapshot
+    const tempCanvas = document.createElement('canvas');
+    tempCanvas.width = 1920;
+    tempCanvas.height = 1080;
+    tempCanvas.style.position = 'fixed';
+    tempCanvas.style.left = '-9999px';
+    document.body.appendChild(tempCanvas);
+
+    const tempCtx = tempCanvas.getContext('2d');
+
+    // 2. Draw a premium dark dashboard gradient background
+    const bgGradient = tempCtx.createLinearGradient(0, 0, 1920, 1080);
+    bgGradient.addColorStop(0, '#0b0a0f');
+    bgGradient.addColorStop(0.5, '#121017');
+    bgGradient.addColorStop(1, '#08070c');
+    tempCtx.fillStyle = bgGradient;
+    tempCtx.fillRect(0, 0, 1920, 1080);
+
+    // Decorative radial glow effects matching the dark theme
+    const crimsonGlow = tempCtx.createRadialGradient(200, 900, 50, 200, 900, 700);
+    crimsonGlow.addColorStop(0, 'rgba(226, 43, 55, 0.15)');
+    crimsonGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    tempCtx.fillStyle = crimsonGlow;
+    tempCtx.fillRect(0, 0, 1920, 1080);
+
+    const goldGlow = tempCtx.createRadialGradient(1720, 180, 50, 1720, 180, 600);
+    goldGlow.addColorStop(0, 'rgba(240, 139, 24, 0.1)');
+    goldGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    tempCtx.fillStyle = goldGlow;
+    tempCtx.fillRect(0, 0, 1920, 1080);
+
+    // 3. Draw chart on the high-res canvas (with large text size scaling)
+    const highResConfig = buildChartConfig(lastFetchedDatas, lastCurrentMmr, lastNumberOfMatch, true);
+    
+    // Disable responsiveness and animations for synchronous layout execution
+    highResConfig.options.responsive = false;
+    highResConfig.options.animation = {
+      duration: 0
+    };
+
+    let tempChart = new Chart(tempCtx, highResConfig);
+
+    // 4. Export PNG data URL
+    const dataUrl = tempCanvas.toDataURL('image/png');
+
+    // 5. Clean up temporary chart and DOM nodes
+    tempChart.destroy();
+    document.body.removeChild(tempCanvas);
+
+    // 6. Write to clipboard
+    const blob = await fetch(dataUrl).then(res => res.blob());
     const item = new ClipboardItem({'image/png': blob});
     await navigator.clipboard.write([item]);
+
+    // Show visual confirmation on screen
     el('messages').style.display = 'block';
     setTimeout(() => {
       el('messages').style.display = 'none';
     }, 3000);
   } catch (error) {
     console.error('Failed to save screenshot to clipboard:', error);
+    alert('Clipboard screenshot access failed. Ensure page permissions allow clipboard writes.');
+  } finally {
+    btn.textContent = originalText;
+    btn.disabled = false;
   }
-}
-
-async function createWhiteGraph() {
-  const canvas = el('dotaGraph');
-  //Save the graph as an image
-  const graphImage = await saveGraphAsImage();
-  //Create a new canvas with a white background
-  const newCanvas = document.createElement('canvas');
-  newCanvas.width = canvas.width;
-  newCanvas.height = canvas.height;
-  const newCtx = newCanvas.getContext('2d');
-
-  //Draw the saved graph onto the new canvas with white background
-  newCtx.fillStyle = 'white';
-  newCtx.fillRect(0, 0, newCanvas.width, newCanvas.height);
-  newCtx.drawImage(graphImage, 0, 0);
-  return newCanvas.toDataURL('image/png');
-}
-
-async function saveGraphAsImage() {
-  const graphCanvas = el('dotaGraph');
-  const graphDataUrl = graphCanvas.toDataURL('image/png');
-  const graphImage = new Image();
-  graphImage.src = graphDataUrl;
-  return new Promise((resolve, reject) => {
-    graphImage.onload = () => resolve(graphImage);
-    graphImage.onerror = (error) => reject(error);
-  });
 }
 
 function clickHandler(evt) {
@@ -429,7 +622,7 @@ function clickHandler(evt) {
       const firstPoint = points[0];
       const label = myChart.data.labels[firstPoint.index];
       const dotabuffUrl = `https://www.dotabuff.com/matches/${label}`;
-      window.open(dotabuffUrl, '_blank')
+      window.open(dotabuffUrl, '_blank');
     }
   }
 }
@@ -443,32 +636,30 @@ function loadSavedPlayerIds() {
       element.value = playerId;
     }
   });
-
 }
 
 function onChangeNumberOfPlayer() {
   numberOfId = parseInt(el("numberOfPlayer").value);
   if (isNaN(numberOfId)) {
-    el("numberOfPlayer").value = 1
+    el("numberOfPlayer").value = 1;
     onInPutNumberOfPlayer();
   }
-
 }
 
 function onInPutNumberOfPlayer() {
   numberOfId = parseInt(el("numberOfPlayer").value);
   if (numberOfId < 1) {
-    el("numberOfPlayer").value = 1
-    numberOfId = 1
+    el("numberOfPlayer").value = 1;
+    numberOfId = 1;
   }
   if (numberOfId > 5) {
-    el("numberOfPlayer").value = 5
-    numberOfId = 5
+    el("numberOfPlayer").value = 5;
+    numberOfId = 5;
   }
 
-  const currentMmr = el('currentMmrWrapper')
+  const currentMmr = el('currentMmrWrapper');
   const playerIdContainer = el('inputs');
-  const gameType = el('gameType');
+  const gameTypeWrapper = el('gameTypeWrapper');
   if (selfCompare === false) {
     playerIdContainer.innerHTML = '';
     for (let i = 1; i <= numberOfId; i++) {
@@ -477,19 +668,24 @@ function onInPutNumberOfPlayer() {
       playerInput.id = 'playerId' + i;
       playerInput.placeholder = 'Enter Player ' + i + ' ID';
       playerInput.min = '1';
-      playerInput.className = "input-field"
+      playerInput.className = "input-field";
       playerIdContainer.appendChild(playerInput);
     }
 
     if (numberOfId === 1) {
       currentMmr.style.display = 'block';
-      gameType.style.display = 'none'
+      gameTypeWrapper.style.display = 'none';
     } else {
       currentMmr.style.display = 'none';
-      gameType.style.display = 'block'
+      gameTypeWrapper.style.display = 'flex';
     }
   } else {
     currentMmr.style.display = 'none';
+    if (numberOfId === 1) {
+      gameTypeWrapper.style.display = 'none';
+    } else {
+      gameTypeWrapper.style.display = 'flex';
+    }
   }
   loadSavedPlayerIds();
 }
@@ -497,6 +693,7 @@ function onInPutNumberOfPlayer() {
 el('checkbox').addEventListener('change', () => {
   const currentMmr = el('currentMmrWrapper');
   const inputs = el('inputs');
+  const gameTypeWrapper = el('gameTypeWrapper');
   if (el('checkbox').checked) {
     selfCompare = true;
     currentMmr.style.display = 'none';
@@ -504,6 +701,11 @@ el('checkbox').addEventListener('change', () => {
       for (let i = inputs.children.length - 1; i > 0; i--) {
         inputs.removeChild(inputs.children[i]);
       }
+    }
+    if (numberOfId === 1) {
+      gameTypeWrapper.style.display = 'none';
+    } else {
+      gameTypeWrapper.style.display = 'flex';
     }
   } else {
     selfCompare = false;
@@ -513,15 +715,9 @@ el('checkbox').addEventListener('change', () => {
   }
 });
 
-el('screenshotBtn').addEventListener('click',
-    takeScreenshot);
+el('screenshotBtn').addEventListener('click', takeScreenshot);
 el('createGraphBtn').addEventListener('click', createGraph);
 el('numberOfPlayer').addEventListener('change', onChangeNumberOfPlayer);
 el('numberOfPlayer').addEventListener('input', onInPutNumberOfPlayer);
+el('dotaGraph').addEventListener('click', clickHandler);
 window.addEventListener('load', loadSavedPlayerIds);
-
-
-
-
-
-
