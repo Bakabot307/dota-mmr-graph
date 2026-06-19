@@ -519,6 +519,7 @@ function onCompleteShowDotaBuff(playerIdsF) {
   }
   for (let i = 0; i < playerIdsF.length; i++) {
     const dotabuffIcon = document.createElement('a');
+    dotabuffIcon.className = 'dotabuff-icon';
     dotabuffIcon.href = `https://www.dotabuff.com/players/${playerIdsF[i]}`;
     dotabuffIcon.target = "_blank";
     const img = document.createElement('img');

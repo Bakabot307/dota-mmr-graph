@@ -408,8 +408,8 @@ body::before {
 }
 
 .dotabuff-icon {
-  height: 40px;
-  width: 40px;
+  height: 36px;
+  width: 36px;
   cursor: pointer;
   transition: var(--transition);
   display: inline-flex;
@@ -420,6 +420,12 @@ body::before {
   border-radius: 8px;
   box-shadow: var(--shadow-sm);
   overflow: hidden;
+}
+
+/* Slightly smaller screenshot button in results header */
+.results-header .btn-action {
+  padding: 6px 12px;
+  font-size: 0.82rem;
 }
 
 .dotabuff-icon img {
