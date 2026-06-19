@@ -376,7 +376,7 @@ function onCompleteShowDotaBuff(playerIdsF) {
   } else {
     el('instructions').style.display = 'none';
   }
-  el('showAfterCreated').style.display = 'block';
+  el('showAfterCreated').classList.add('active');
 }
 
 async function takeScreenshot() {
@@ -466,8 +466,7 @@ function onInPutNumberOfPlayer() {
     numberOfId = 5
   }
 
-  const currentMmr = el('currentMmr')
-  const currentMmrText = el('currentMmrText')
+  const currentMmr = el('currentMmrWrapper')
   const playerIdContainer = el('inputs');
   const gameType = el('gameType');
   if (selfCompare === false) {
@@ -478,36 +477,29 @@ function onInPutNumberOfPlayer() {
       playerInput.id = 'playerId' + i;
       playerInput.placeholder = 'Enter Player ' + i + ' ID';
       playerInput.min = '1';
-      playerInput.className = "inputField"
+      playerInput.className = "input-field"
       playerIdContainer.appendChild(playerInput);
     }
 
     if (numberOfId === 1) {
       currentMmr.style.display = 'block';
-      currentMmrText.style.display = 'block';
       gameType.style.display = 'none'
     } else {
       currentMmr.style.display = 'none';
-      currentMmrText.style.display = 'none';
       gameType.style.display = 'block'
     }
   } else {
     currentMmr.style.display = 'none';
-    currentMmrText.style.display = 'none';
   }
   loadSavedPlayerIds();
 }
 
 el('checkbox').addEventListener('change', () => {
-  const currentMmr = el('currentMmr');
-  const currentMmrText = el('currentMmrText');
-  const numberOfPlayerText = el('numberOfPlayerText');
+  const currentMmr = el('currentMmrWrapper');
   const inputs = el('inputs');
   if (el('checkbox').checked) {
     selfCompare = true;
     currentMmr.style.display = 'none';
-    currentMmrText.style.display = 'none';
-    numberOfPlayerText.textContent = "Number of Graph:";
     if (inputs.children.length > 1) {
       for (let i = inputs.children.length - 1; i > 0; i--) {
         inputs.removeChild(inputs.children[i]);
@@ -516,8 +508,6 @@ el('checkbox').addEventListener('change', () => {
   } else {
     selfCompare = false;
     currentMmr.style.display = 'block';
-    currentMmrText.style.display = 'block';
-    numberOfPlayerText.textContent = "Number of Player:";
     numberOfId = 1;
     onInPutNumberOfPlayer();
   }

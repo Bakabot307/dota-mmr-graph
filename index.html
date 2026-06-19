@@ -3,60 +3,118 @@
 <head>
   <meta charset="UTF-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Dota 2 Match History Graph</title>
+  <title>Dota 2 MMR Graph Analyzer</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link href="styles.css" rel="stylesheet" type="text/css">
 </head>
 <body>
-<div class="controls">
-  <div class="form-row">
-    <label for="checkbox">Self-Comparing?</label>
-    <input type="checkbox" id="checkbox">
-  </div>
-  <div class="form-row">
-    <label for="numberOfPlayer" id="numberOfPlayerText">Number of Players:</label>
-    <input class="inputField" id="numberOfPlayer" max="5" min="1" type="number" value="1">
-  </div>
-  <div class="form-row" id="playerInputs">
-    <label for="playerId1">Player ID:</label>
-    <div id="inputs">
-      <input class="inputField" id="playerId1" placeholder="Enter Player 1 ID" type="number">
+  <div class="wrapper">
+    <!-- Header -->
+    <header class="header">
+      <div class="header-content">
+        <h1 class="title">📊 Dota 2 MMR Analyzer</h1>
+        <p class="subtitle">Track your MMR progression and compare with other players</p>
+      </div>
+    </header>
+
+    <!-- Main Container -->
+    <div class="container">
+      <!-- Control Panel -->
+      <section class="control-panel">
+        <h2 class="section-title">⚙️ Configuration</h2>
+        
+        <div class="form-grid">
+          <!-- Self Compare Toggle -->
+          <div class="form-group">
+            <label class="label-with-icon">
+              <input type="checkbox" id="checkbox" class="checkbox-input">
+              <span>Self-Comparing Mode</span>
+            </label>
+            <p class="form-help">Compare yourself across different time periods</p>
+          </div>
+
+          <!-- Number of Players -->
+          <div class="form-group">
+            <label for="numberOfPlayer" class="form-label">👥 Number of Players:</label>
+            <input class="input-field" id="numberOfPlayer" max="5" min="1" type="number" value="1">
+            <p class="form-help" id="numberOfPlayerHelp">Select how many players to compare</p>
+          </div>
+
+          <!-- Player IDs -->
+          <div class="form-group form-group-full" id="playerInputs">
+            <label class="form-label">🎮 Player Steam IDs:</label>
+            <div id="inputs" class="player-inputs-container">
+              <input class="input-field" id="playerId1" placeholder="Enter Player 1 Steam ID" type="number">
+            </div>
+            <p class="form-help">Enter the Steam ID of each player (find it on Dotabuff)</p>
+          </div>
+
+          <!-- Current MMR -->
+          <div class="form-group" id="currentMmrWrapper">
+            <label for="currentMmr" class="form-label">🏆 Starting MMR:</label>
+            <input class="input-field" id="currentMmr" placeholder="e.g., 5000" type="number">
+            <p class="form-help">Your MMR at the starting point</p>
+          </div>
+
+          <!-- Number of Matches -->
+          <div class="form-group">
+            <label for="numberOfMatch" class="form-label">📈 Number of Matches:</label>
+            <input class="input-field" id="numberOfMatch" placeholder="e.g., 100" type="number" value="100">
+            <p class="form-help">Number of recent matches to analyze</p>
+          </div>
+
+          <!-- Game Type -->
+          <div class="form-group" style="display: none;">
+            <select id="gameType" class="input-field">
+              <option value="7">Ranked</option>
+              <option value="1">All Matches</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Error Message -->
+        <div id="errorContainer" class="error-container">
+          <label id="errors"></label>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="button-group">
+          <button id="createGraphBtn" class="btn btn-primary">
+            <span>📊 Create Graph</span>
+          </button>
+          <a href="https://github.com/Bakabot307/dota-mmr-graph" target="_blank" class="btn btn-secondary">
+            <span>💡 Suggestions</span>
+          </a>
+        </div>
+      </section>
+
+      <!-- Graph Section -->
+      <section class="graph-section">
+        <h2 class="section-title">📉 MMR Progress Chart</h2>
+        <div class="canvas-container">
+          <canvas id="dotaGraph"></canvas>
+        </div>
+      </section>
+
+      <!-- Results Section -->
+      <section id="showAfterCreated" class="results-section">
+        <div class="results-header">
+          <button id="screenshotBtn" class="btn btn-action">📸 Take Screenshot</button>
+          <div id="profileBtnContainer" class="profile-buttons"></div>
+        </div>
+        <p id="instructions" class="instructions-text">💡 Click on the match labels to view detailed stats on Dotabuff</p>
+        <label id="messages" class="success-message">✅ Screenshot saved to clipboard!</label>
+      </section>
     </div>
-  </div>
-  <div class="form-row" id="currentMmrWrapper">
-    <label for="currentMmr" id="currentMmrText">Current MMR:</label>
-    <input class="inputField" id="currentMmr" placeholder="Enter current MMR" type="number">
-  </div>
-  <div class="form-row">
-    <label for="numberOfMatch">Matches:</label>
-    <input class="inputField" id="numberOfMatch" placeholder="Enter number of match" type="number" value="100">
-  </div>
-  <div class="form-row">
-    <select id="gameType" class="inputField" style="display: none">
-      <option value="7">Ranked</option>
-      <option value="1">All Matches</option>
-    </select>
-  </div>
-  <div class="form-row">
-    <button id="createGraphBtn" class="btn btn-primary">Create Graph</button>
-    <a href="https://github.com/Bakabot307/dota-mmr-graph" target="_blank">Suggestion?</a>
-  </div>
-</div>
 
-  <div class="canvas-container">
-    <label id="errors" style="color: red"></label>
-    <canvas height="600px" id="dotaGraph" width="1200px"></canvas>
-    <div id="showAfterCreated">
-      <button id="screenshotBtn" class="btn btn-secondary">Take Screenshot</button>
-      <div id="profileBtnContainer"></div>
-      <p id="instructions" style="font-size: 14px; color: #666; display: none">* Click on the tick labels to view matches on Dotabuff<br>
-      </p>
-    </div>
+    <!-- Footer -->
+    <footer class="footer">
+      <p>Made with ❤️ for Dota 2 players</p>
+    </footer>
+  </div>
 
-
-  <label id="messages">Screenshot saved to clipboard!</label>
-</div>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
-<script src="script.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+  <script src="script.js"></script>
 </body>
 </html>
