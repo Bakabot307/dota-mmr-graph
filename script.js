@@ -237,7 +237,7 @@ function buildChartConfig(datas, currentMmr, numberOfMatch, isHighRes = false) {
             },
             title: {
               display: true,
-              text: `MMR progression over the last ${data.length} matches for Player ${playerIds[0]}`,
+              text: `MMR progression over the last ${data.length} matches for Player ${datas[0].playerId}`,
               color: '#8b8994',
               font: { family: 'Outfit', size: fontTitleSize, weight: 'bold' }
             },
@@ -392,7 +392,7 @@ function buildChartConfig(datas, currentMmr, numberOfMatch, isHighRes = false) {
               display: true,
               text: selfCompare
                   ? `Self-comparing score across ${datasetsArray[0].data.length * numberOfId} matches in ${numberOfId} periods`
-                  : `Compare between ${playerIds.length} players over the last ${datasetsArray[0].data.length} matches`,
+                  : `Compare between ${datasetsArray.length} players over the last ${datasetsArray[0].data.length} matches`,
               color: '#8b8994',
               font: { family: 'Outfit', size: fontTitleSize, weight: 'bold' }
             },
@@ -473,6 +473,7 @@ async function createGraph() {
   // Draw chart in preview mode (responsive)
   const config = buildChartConfig(datas, currentMmr, numberOfMatch, false);
   myChart = new Chart(ctx, config);
+  onCompleteShowDotaBuff(playerIds);
 }
 
 function somethingFun() {
@@ -694,8 +695,10 @@ el('checkbox').addEventListener('change', () => {
   const currentMmr = el('currentMmrWrapper');
   const inputs = el('inputs');
   const gameTypeWrapper = el('gameTypeWrapper');
+  const numberLabel = document.querySelector('label[for="numberOfPlayer"]');
   if (el('checkbox').checked) {
     selfCompare = true;
+    if (numberLabel) numberLabel.textContent = '🔁 Number of Periods:';
     currentMmr.style.display = 'none';
     if (inputs.children.length > 1) {
       for (let i = inputs.children.length - 1; i > 0; i--) {
@@ -711,6 +714,7 @@ el('checkbox').addEventListener('change', () => {
     selfCompare = false;
     currentMmr.style.display = 'block';
     numberOfId = 1;
+    if (numberLabel) numberLabel.textContent = '👥 Number of Players:';
     onInPutNumberOfPlayer();
   }
 });
