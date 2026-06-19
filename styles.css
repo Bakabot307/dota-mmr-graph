@@ -352,15 +352,17 @@ body {
   justify-content: center;
   background: var(--bg-tertiary);
   border-radius: 12px;
-  padding: 30px;
-  min-height: 550px;
+  padding: 40px;
+  min-height: 650px;
   position: relative;
   border: 1px solid var(--border-color);
+  width: 100%;
 }
 
 #dotaGraph {
-  max-width: 100%;
-  height: auto;
+  width: 100% !important;
+  height: 100% !important;
+  max-height: 600px;
   filter: drop-shadow(0 4px 12px rgba(146, 173, 63, 0.1));
 }
 
@@ -516,13 +518,14 @@ body {
   }
 
   .canvas-container {
-    min-height: 450px;
+    min-height: 500px;
     padding: 20px;
   }
 
   #dotaGraph {
-    width: 100%;
-    height: auto;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 450px;
   }
 
   .section-title {

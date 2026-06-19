@@ -184,7 +184,7 @@ async function createGraph() {
             right: 50,
 
           }
-        }, responsive: false, scales: {
+        }, responsive: true, maintainAspectRatio: true, scales: {
           x: {
             title: {
               display: true,
@@ -288,7 +288,7 @@ async function createGraph() {
           padding: {
             right: 50,
           }
-        }, responsive: false, scales: {
+        }, responsive: true, maintainAspectRatio: true, scales: {
           x: {
             title: {
               display: true,
